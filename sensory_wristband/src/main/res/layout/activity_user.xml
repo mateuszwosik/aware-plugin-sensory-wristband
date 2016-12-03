@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_user"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.aware.plugin.sensory_wristband.activities.UserActivity">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/aliasEditText" />
+
+    <TextView
+        android:text="@string/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/aliasTextView"
+        android:layout_alignBaseline="@+id/aliasEditText"
+        android:layout_alignBottom="@+id/aliasEditText"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="33dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="numberSigned"
+        android:ems="10"
+        android:layout_below="@+id/aliasEditText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="14dp"
+        android:id="@+id/ageEditText" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="numberSigned"
+        android:ems="10"
+        android:id="@+id/heightEditText"
+        android:layout_marginTop="14dp"
+        android:layout_below="@+id/ageEditText"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:text="@string/save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="32dp"
+        android:id="@+id/saveUsrDataButton" />
+
+    <TextView
+        android:text="@string/height"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/heightTextView"
+        android:layout_alignBaseline="@+id/heightEditText"
+        android:layout_alignBottom="@+id/heightEditText"
+        android:layout_alignStart="@+id/ageTextView" />
+
+    <TextView
+        android:text="@string/age"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ageTextView"
+        android:layout_alignBaseline="@+id/ageEditText"
+        android:layout_alignBottom="@+id/ageEditText"
+        android:layout_alignStart="@+id/aliasTextView" />
+
+    <TextView
+        android:text="@string/weight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/weightTextView"
+        android:layout_alignBaseline="@+id/weightEditText"
+        android:layout_alignBottom="@+id/weightEditText"
+        android:layout_alignStart="@+id/heightTextView" />
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/weightEditText"
+        android:layout_marginTop="18dp"
+        android:layout_alignStart="@+id/weightEditText"
+        android:layout_alignParentEnd="true"
+        android:layout_centerHorizontal="false"
+        android:orientation="horizontal"
+        android:id="@+id/sexRadioGroup">
+
+        <RadioButton
+            android:text="@string/men"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/menRadioButton"
+            android:layout_weight="0.5" />
+
+        <RadioButton
+            android:text="@string/women"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/womenRadioButton"
+            android:layout_weight="0.5" />
+
+    </RadioGroup>
+
+    <TextView
+        android:text="@string/sex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sexTextView"
+        android:layout_centerVertical="true"
+        android:layout_alignStart="@+id/weightTextView" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="numberSigned"
+        android:ems="10"
+        android:layout_marginTop="15dp"
+        android:id="@+id/weightEditText"
+        android:layout_below="@+id/heightEditText"
+        android:layout_alignParentEnd="true" />
+
+</RelativeLayout>

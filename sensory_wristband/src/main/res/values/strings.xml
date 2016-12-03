@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">AWARE: Sensory Wristband</string>
+    <string name="heartbeat">Heartbeat</string>
+    <string name="zeroHeartRate">0 bmp</string>
+    <string name="batteryLevel">Battery Level</string>
+    <string name="signalStrength">Signal Strength</string>
+    <string name="steps">Steps</string>
+    <string name="zeroSteps">0</string>
+    <string name="deviceName">Name</string>
+    <string name="deviceUuid">Uuid\'s</string>
+    <string name="deviceAddress">Address</string>
+    <string name="deviceType">Type</string>
+    <string name="deviceBondState">Bond State</string>
+    <string name="deviceBluetoothClass">Bluetooth Class</string>
+    <string name="startScan">Scan for devices nearby</string>
+    <string name="stopScan">Stop scan</string>
+    <string name="disconnectDevice">Disconnect device</string>
+    <string name="saveUserSettings">Save user settings</string>
+    <string name="name">Name</string>
+    <string name="height">Height (CM)</string>
+    <string name="weight">Weight (KG)</string>
+    <string name="age">Age</string>
+    <string name="sex">Sex</string>
+    <string name="men">Men</string>
+    <string name="women">Women</string>
+    <string name="save">Save</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="alertMessage">Message Alert</string>
+    <string name="alertPhoneCall">Phone Call Alert</string>
+    <string name="alertVibrate">Vibrate Only Alert</string>
+    <string name="measureHeartRate">Measure Heart Rate</string>
+    <string name="startStep">Start Step Count</string>
+    <string name="starSensor">Start Sensor Notification</string>
+    <string name="sensorInfo">[index: ; d1: ; d2: ; d3: ]</string>
+</resources>
