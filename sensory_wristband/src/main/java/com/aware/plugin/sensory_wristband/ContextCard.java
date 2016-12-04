@@ -19,10 +19,6 @@ import java.util.TimerTask;
 
 public class ContextCard implements IContextCard {
 
-    //DEMO: we are demo'ing a counter incrementing in real-time
-    private int counter = 0;
-
-    private final Handler uiUpdater = new Handler();
     private TextView heartRateTextView;
     private TextView stepsTextView;
     private ImageView batteryImageView;
@@ -30,13 +26,7 @@ public class ContextCard implements IContextCard {
 
     //Constructor used to instantiate this card
     public ContextCard() {
-        /*Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                updateUI();
-            }
-        }, 0, 1000); //update the UI every 1 second*/
+
     }
 
     @Override
@@ -60,20 +50,6 @@ public class ContextCard implements IContextCard {
 
         //Return the card to AWARE/apps
         return card;
-    }
-
-    private void updateUI() {
-        //increment counter
-        //counter++;
-
-        //update UI
-        /*uiUpdater.post(new Runnable() {
-            @Override
-            public void run() {
-                String hearRate = String.valueOf(counter) + " bpm";
-                heartRateTextView.setText(hearRate);
-            }
-        });*/
     }
 
     /**
