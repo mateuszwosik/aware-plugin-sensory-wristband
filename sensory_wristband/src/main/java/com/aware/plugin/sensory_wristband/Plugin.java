@@ -49,7 +49,7 @@ public class Plugin extends Aware_Plugin {
     private static final int TYPE = 0;
 
     private static int UPDATE_BASIC_INFO_PERIOD = 10000;//10s
-    private static int UPDATE_HEART_RATE_PERIOD = 20000;//20s
+    private static int UPDATE_HEART_RATE_PERIOD = 30000;//20s
 
     private BluetoothAdapter bluetoothAdapter;
     private Band band;
@@ -68,7 +68,7 @@ public class Plugin extends Aware_Plugin {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (ScanActivity.ACTION_AWARE_SENSORY_WRISTBAND_SCAN_COMPLETE.equals(intent.getAction())){
-                Device device = intent.getParcelableExtra(ScanActivity.EXTRA_DEVICE);
+                Device device = (Device) intent.getSerializableExtra(ScanActivity.EXTRA_DEVICE);
                 BluetoothDevice bluetoothDevice = bluetoothAdapter.getRemoteDevice(device.getAddress());
                 band = DeviceSelector.getInstance().getSupportedDevice(bluetoothDevice,getApplicationContext());
                 if (band == null){
@@ -317,6 +317,7 @@ public class Plugin extends Aware_Plugin {
             @Override
             public void onSuccess(Object data) {
                 final int rssi = (int) data;
+                Log.d(TAG,"Rssi: " + rssi);
                 contextProducer = new ContextProducer() {
                     @Override
                     public void onContext() {
@@ -344,6 +345,7 @@ public class Plugin extends Aware_Plugin {
             @Override
             public void onSuccess(Object data) {
                 final BatteryInfo batteryInfo = (BatteryInfo) data;
+                Log.d(TAG,"Battery info: " + batteryInfo.toString());
                 contextProducer = new ContextProducer() {
                     @Override
                     public void onContext() {
@@ -370,6 +372,7 @@ public class Plugin extends Aware_Plugin {
         band.setRealtimeStepsNotifyListener(new RealtimeStepsNotifyListener() {
             @Override
             public void onNotify(final int steps) {
+                Log.d(TAG,"Number of steps: " + steps);
                 contextProducer = new ContextProducer() {
                     @Override
                     public void onContext() {
@@ -410,9 +413,11 @@ public class Plugin extends Aware_Plugin {
      */
     private void enableHeartRateNotification(){
         //Set the heart rate scan notification
+        Log.d(TAG,"Setting heart rate notification.");
         band.setHeartRateScanListener(new HeartRateNotifyListener() {
             @Override
             public void onNotify(final int heartRate) {
+                Log.d(TAG,"Heart rate: " + heartRate + " bmp");
                 contextProducer = new ContextProducer() {
                     @Override
                     public void onContext() {
