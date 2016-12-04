@@ -40,7 +40,8 @@
             android:writePermission="com.aware.WRITE_CONTEXT_DATA" />
 
         <activity android:name=".activities.ScanActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:launchMode="singleTop"/>
 
     </application>
 </manifest>

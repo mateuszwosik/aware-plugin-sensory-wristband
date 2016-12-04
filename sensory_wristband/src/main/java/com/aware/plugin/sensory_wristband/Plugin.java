@@ -1,6 +1,7 @@
 package com.aware.plugin.sensory_wristband;
 
 import android.Manifest;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -183,14 +184,14 @@ public class Plugin extends Aware_Plugin {
             //Initialize our plugin's settings
             Aware.setSetting(this, Settings.STATUS_PLUGIN_SENSORY_WRISTBAND, true);
 
-            //Ask AWARE for Bluetooth
-            Aware.setSetting(this, Aware_Preferences.STATUS_BLUETOOTH, true);
-            Aware.setSetting(this, Aware_Preferences.FREQUENCY_BLUETOOTH, 60);
-            //sendBroadcast(new Intent(Bluetooth.ACTION_AWARE_BLUETOOTH_REQUEST_SCAN));
-
-            //START MY SCAN ACTIVITY??
-            if (band == null){
-                startScanActivity();
+            if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()){
+                //Ask AWARE for Bluetooth
+                Aware.setSetting(this, Aware_Preferences.STATUS_BLUETOOTH, true);
+                Aware.setSetting(this, Aware_Preferences.FREQUENCY_BLUETOOTH, 60);
+            } else {
+                if (band == null) {
+                    startScanActivity();
+                }
             }
 
         } else {

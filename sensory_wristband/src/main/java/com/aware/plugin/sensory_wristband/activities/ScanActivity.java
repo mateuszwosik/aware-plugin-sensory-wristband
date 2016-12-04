@@ -61,6 +61,7 @@ public class ScanActivity extends AppCompatActivity {
                     Log.d(TAG, "Bluetooth scan started");
                     scanState = SCANNING;
                     deviceArrayAdapter.clear();
+                    devices.clear();
                     break;
                 case Bluetooth.ACTION_AWARE_BLUETOOTH_SCAN_ENDED:
                     Log.d(TAG, "Bluetooth scan ended");
