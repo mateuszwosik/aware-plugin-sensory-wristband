@@ -4,8 +4,21 @@ package com.aware.plugin.sensory_wristband.device.MiBand2.model;
 import com.aware.plugin.sensory_wristband.utils.ByteArray;
 
 public class Protocol {
-    //Heart rate measurement
-    public static final byte[] START_HEART_RATE_SCAN = {21, 2, 1};
+
+    public static final byte DISABLE = 0x0;
+    public static final byte ENABLE = 0x1;
+
+    // ==================== HEART RATE =====================
+    /**
+     * 0x15 - means Heart Rate sensor
+     * MODE bytes is the second parameter in heart rate scan.
+     * Third parameter and last one is for enable/disable functionality.
+     */
+    public static final byte HEART_RATE_SLEEP_MODE = 0x0;
+    public static final byte HEART_RATE_CONTINUOUS_MODE = 0x1;
+    public static final byte HEART_RATE_MANUAL_MODE = 0x2;
+    public static final byte[] START_HEART_RATE_SCAN = {0x15, HEART_RATE_MANUAL_MODE, ENABLE};
+    // ========================== END ===========================
 
     //Alert levels
     public static final byte ALERT_LEVEL_NONE = 0x00;//NO
