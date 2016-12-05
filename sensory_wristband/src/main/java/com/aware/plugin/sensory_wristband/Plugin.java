@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -51,6 +52,7 @@ public class Plugin extends Aware_Plugin {
     private static final int TYPE = 0;
 
     private static int UPDATE_BASIC_INFO_PERIOD = 10000;//10s
+    private static int UPDATE_HEART_RATE_PERIOD = 30000;//30s
     private static int SENSORS_ACTIVATION_DELAY = 5000;//3s
 
     private static final int HEART_RATE_MAX_VALUE = 221;
@@ -61,6 +63,8 @@ public class Plugin extends Aware_Plugin {
     private static Band band;
     private static Handler basicInfoHandler;
     private static Runnable basicInfoPeriodicUpdater;
+    private static Handler heartRateHandler;
+    private static Runnable heartRatePeriodicUpdater;
     private static Handler sensorsActivationHandler;
     private static Runnable sensorsActivationRunnable;
 
@@ -139,12 +143,21 @@ public class Plugin extends Aware_Plugin {
             }
         };
 
+        heartRateHandler = new Handler();
+        heartRatePeriodicUpdater = new Runnable() {
+            @Override
+            public void run() {
+                startHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
+                heartRateHandler.postDelayed(heartRatePeriodicUpdater,UPDATE_HEART_RATE_PERIOD);
+            }
+        };
+
         sensorsActivationHandler = new Handler();
         sensorsActivationRunnable = new Runnable() {
             @Override
             public void run() {
-                //Start heart rate continuous measurement
-                startHeartRateMeasurement(Protocol.HEART_RATE_CONTINUOUS_MODE);
+                //Start heart rate measurement
+                heartRateHandler.post(heartRatePeriodicUpdater);
                 //Start step notifications
                 startStepNotification();
             }
@@ -251,8 +264,9 @@ public class Plugin extends Aware_Plugin {
                     public void onNotify(byte[] data) {
                         Log.d(TAG,"Device disconnected");
                         basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
+                        heartRateHandler.removeCallbacks(heartRatePeriodicUpdater);
                         stopStepNotification();
-                        stopHeartRateMeasurement(Protocol.HEART_RATE_CONTINUOUS_MODE);
+                        stopHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
                         band.disconnect();
                         band = null;
                         contextProducer = new ContextProducer() {
