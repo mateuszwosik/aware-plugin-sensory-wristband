@@ -307,9 +307,9 @@ public class Plugin extends Aware_Plugin {
                     public void onContext() {
                         Intent intent = new Intent(ACTION_AWARE_BAND_ENABLE_NOTIFICATION);
                         sendBroadcast(intent);
-                        intent = new Intent(ACTION_AWARE_BAND_NAME);
-                        intent.putExtra(EXTRA_DATA,band.getDevice().getName());
-                        sendBroadcast(intent);
+                        Intent nameIntent = new Intent(ACTION_AWARE_BAND_NAME);
+                        nameIntent.putExtra(EXTRA_DATA,band.getDevice().getName());
+                        sendBroadcast(nameIntent);
                     }
                 };
                 CONTEXT_PRODUCER = contextProducer;
