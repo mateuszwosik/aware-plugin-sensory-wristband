@@ -3,9 +3,11 @@ package com.aware.plugin.sensory_wristband;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.preference.SwitchPreference;
 
 import com.aware.Aware;
 
@@ -13,9 +15,13 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 
     //Plugin settings in XML @xml/preferences
     public static final String STATUS_PLUGIN_SENSORY_WRISTBAND = "status_plugin_sensory_wristband";
+    public static final String STATUS_HEART_RATE = "status_heart_rate";
+    public static final String FREQUENCY_HEART_RATE = "frequency_heart_rate";
 
     //Plugin settings UI elements
     private static CheckBoxPreference status;
+    private static SwitchPreference heartRateStatus;
+    private static ListPreference heartRateFrequencyList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

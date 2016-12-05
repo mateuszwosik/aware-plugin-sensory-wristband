@@ -8,5 +8,19 @@
         android:defaultValue="false"
         android:persistent="true"
         android:summary="Activate/deactivate plugin" />
+    <SwitchPreference
+        android:defaultValue="false"
+        android:title="Heart rate measurement"
+        android:key="status_heart_rate" />
+    <ListPreference
+        android:defaultValue="3600000"
+        android:entries="@array/heart_rate_frequency_labels"
+        android:entryValues="@array/heart_rate_frequency_values"
+        android:key="frequency_heart_rate"
+        android:title="Heart rate measurement frequency" />
+    <SwitchPreference
+        android:defaultValue="false"
+        android:title="Realtime steps"
+        android:key="status_steps" />
 
 </PreferenceScreen>
