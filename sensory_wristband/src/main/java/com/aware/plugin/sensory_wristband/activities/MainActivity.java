@@ -557,14 +557,14 @@ public class MainActivity extends AppCompatActivity {
      * Start heart rate measurement/scan.
      */
     private void startHeartRateMeasurement(){
-        band.startHeartRateScan();
+        band.startHeartRateScan(Protocol.HEART_RATE_MANUAL_MODE);
     }
 
     /**
      * Stop heart rate measurement/scan.
      */
     private void stopHeartRateMeasurement(){
-        band.stopHeartRateScan();
+        band.stopHeartRateScan(Protocol.HEART_RATE_MANUAL_MODE);
     }
 
     /**

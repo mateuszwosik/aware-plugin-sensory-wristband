@@ -6,6 +6,8 @@
     <string name="signalStrength">Signal Strength</string>
     <string name="steps">Steps</string>
     <string name="zeroSteps">0</string>
+    <string name="bandWrongPosition">Band is in wrong position. Wear band tightly above the wrist and try again.</string>
+
     <string name="deviceName">Name</string>
     <string name="deviceUuid">Uuid\'s</string>
     <string name="deviceAddress">Address</string>

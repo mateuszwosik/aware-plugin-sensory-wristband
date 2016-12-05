@@ -5,11 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aware.plugin.sensory_wristband.device.MiBand.model.BatteryInfo;
 import com.aware.utils.IContextCard;
@@ -23,6 +25,15 @@ public class ContextCard implements IContextCard {
     private TextView stepsTextView;
     private ImageView batteryImageView;
     private ImageView rssiImageView;
+    private TextView nameTextView;
+    private TextView infoTextView;
+
+    private static String name = "";
+    private static String heartRate ="0 bmp";
+    private static String steps = "0";
+    private static int rssiResId  = R.drawable.rssi_0;
+    private static int batteryResId = R.drawable.battery_level_0;
+    private static String info = "";
 
     //Constructor used to instantiate this card
     public ContextCard() {
@@ -40,12 +51,23 @@ public class ContextCard implements IContextCard {
         stepsTextView = (TextView) card.findViewById(R.id.stepsTextView);
         batteryImageView = (ImageView) card.findViewById(R.id.batteryImageView);
         rssiImageView = (ImageView) card.findViewById(R.id.rssiImageView);
+        nameTextView = (TextView) card.findViewById(R.id.nameTextView);
+        infoTextView = (TextView) card.findViewById(R.id.infoTextView);
+
+        infoTextView.setText(info);
+        nameTextView.setText(name);
+        rssiImageView.setImageResource(rssiResId);
+        batteryImageView.setImageResource(batteryResId);
+        stepsTextView.setText(steps);
+        heartRateTextView.setText(heartRate);
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_RSSI);
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_BATTERY);
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_HEART_RATE);
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_STEPS);
+        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_NAME);
+        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_DISCONNECTED);
         context.registerReceiver(dataBroadcastReceiver,intentFilter);
 
         //Return the card to AWARE/apps
@@ -58,16 +80,17 @@ public class ContextCard implements IContextCard {
      */
     private void updateRSSI(final int rssi){
         if(rssi > -70){
-            rssiImageView.setImageResource(R.drawable.rssi_4);
+            rssiResId = R.drawable.rssi_4;
         } else if(rssi > -80){
-            rssiImageView.setImageResource(R.drawable.rssi_3);
+            rssiResId = R.drawable.rssi_3;
         } else if(rssi > -85){
-            rssiImageView.setImageResource(R.drawable.rssi_2);
+            rssiResId = R.drawable.rssi_2;
         } else if(rssi > -90){
-            rssiImageView.setImageResource(R.drawable.rssi_1);
+            rssiResId = R.drawable.rssi_1;
         } else {
-            rssiImageView.setImageResource(R.drawable.rssi_0);
+            rssiResId = R.drawable.rssi_0;
         }
+        rssiImageView.setImageResource(rssiResId);
     }
 
     /**
@@ -78,16 +101,17 @@ public class ContextCard implements IContextCard {
         //cycles:4,level:44,status:unknown,last:2015-04-15 03:37:55
         int level = batteryInfo.getLevel();
         if(level > 80){
-            batteryImageView.setImageResource(R.drawable.battery_level_4);
+            batteryResId = R.drawable.battery_level_4;
         } else if(level > 60){
-            batteryImageView.setImageResource(R.drawable.battery_level_3);
+            batteryResId = R.drawable.battery_level_3;
         } else if(level > 40){
-            batteryImageView.setImageResource(R.drawable.battery_level_2);
+            batteryResId = R.drawable.battery_level_2;
         } else if(level > 20){
-            batteryImageView.setImageResource(R.drawable.battery_level_1);
+            batteryResId = R.drawable.battery_level_1;
         } else {
-            batteryImageView.setImageResource(R.drawable.battery_level_0);
+            batteryResId = R.drawable.battery_level_0;
         }
+        batteryImageView.setImageResource(batteryResId);
     }
 
     /**
@@ -95,7 +119,8 @@ public class ContextCard implements IContextCard {
      * @param steps - number of steps
      */
     private void updateStepNumber(final int steps){
-        stepsTextView.setText(String.valueOf(steps));
+        ContextCard.steps = String.valueOf(steps);
+        stepsTextView.setText(ContextCard.steps);
     }
 
     /**
@@ -103,8 +128,38 @@ public class ContextCard implements IContextCard {
      * @param heartRate - heart rate
      */
     private void updateHeartRate(final int heartRate){
-        final String text = String.valueOf(heartRate) + " bpm";
-        heartRateTextView.setText(text);
+        if (heartRate != 0) {
+            ContextCard.info = "";
+        } else {
+            ContextCard.info = "Band is in wrong position. Wear band tightly above the wrist and try again.";
+        }
+        ContextCard.heartRate = String.valueOf(heartRate) + " bpm";
+        heartRateTextView.setText(ContextCard.heartRate);
+        infoTextView.setText(ContextCard.info);
+    }
+
+    /**
+     * Display connected band name.
+     * @param name - name of the connected band
+     */
+    private void setBandName(final String name) {
+        ContextCard.name = name;
+        nameTextView.setText(ContextCard.name);
+    }
+
+    /**
+     * Initialize all views and variables.
+     */
+    private void init() {
+        setBandName("");
+        updateRSSI(0);
+        batteryResId = R.drawable.battery_level_0;
+        batteryImageView.setImageResource(batteryResId);
+        updateStepNumber(0);
+        heartRate = "0 bpm";
+        heartRateTextView.setText(heartRate);
+        info = "";
+        infoTextView.setText(info);
     }
 
     private DataBroadcastReceiver dataBroadcastReceiver = new DataBroadcastReceiver();
@@ -123,6 +178,12 @@ public class ContextCard implements IContextCard {
                     break;
                 case Plugin.ACTION_AWARE_BAND_HEART_RATE:
                     updateHeartRate(intent.getIntExtra(Plugin.EXTRA_DATA,0));
+                    break;
+                case Plugin.ACTION_AWARE_BAND_NAME:
+                    setBandName(intent.getStringExtra(Plugin.EXTRA_DATA));
+                    break;
+                case Plugin.ACTION_AWARE_BAND_DISCONNECTED:
+                    init();
                     break;
             }
         }

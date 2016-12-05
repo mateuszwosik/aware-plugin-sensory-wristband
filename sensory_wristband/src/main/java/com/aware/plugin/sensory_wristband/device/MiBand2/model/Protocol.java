@@ -17,7 +17,8 @@ public class Protocol {
     public static final byte HEART_RATE_SLEEP_MODE = 0x0;
     public static final byte HEART_RATE_CONTINUOUS_MODE = 0x1;
     public static final byte HEART_RATE_MANUAL_MODE = 0x2;
-    public static final byte[] START_HEART_RATE_SCAN = {0x15, HEART_RATE_MANUAL_MODE, ENABLE};
+    public static final byte HEART_RATE_SCAN = 0x15;
+    public static final byte[] START_HEART_RATE_SCAN = {HEART_RATE_SCAN, HEART_RATE_MANUAL_MODE, ENABLE};
     // ========================== END ===========================
 
     //Alert levels

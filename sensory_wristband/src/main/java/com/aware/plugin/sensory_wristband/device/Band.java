@@ -239,12 +239,14 @@ public interface Band {
 
     /**
      * Start Heart Rate Measurement.
+     * @param hearRateMode - heart rate mode
      */
-    void startHeartRateScan();
+    void startHeartRateScan(byte hearRateMode);
 
     /**
      * Stop Heart Rate Measurement.
+     * @param heartRateMode - which heart rate mode stop
      */
-    void stopHeartRateScan();
+    void stopHeartRateScan(byte heartRateMode);
     /*==================== Heart Rate END ====================*/
 }

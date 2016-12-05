@@ -382,13 +382,13 @@ public class MiBand2 implements Band {
     }
 
     @Override
-    public void startHeartRateScan() {
-        io.writeCharacteristic(Profile.UUID_SERVICE_HEART_RATE, Profile.UUID_CHAR_HEART_RATE_CONTROL_POINT, Protocol.START_HEART_RATE_SCAN, null);
+    public void startHeartRateScan(byte heartRateMode) {
+        io.writeCharacteristic(Profile.UUID_SERVICE_HEART_RATE, Profile.UUID_CHAR_HEART_RATE_CONTROL_POINT, new byte[]{Protocol.HEART_RATE_SCAN,heartRateMode,Protocol.ENABLE}, null);
     }
 
     @Override
-    public void stopHeartRateScan(){
-
+    public void stopHeartRateScan(byte heartRateMode){
+        io.writeCharacteristic(Profile.UUID_SERVICE_HEART_RATE, Profile.UUID_CHAR_HEART_RATE_CONTROL_POINT, new byte[]{Protocol.HEART_RATE_SCAN,heartRateMode,Protocol.DISABLE},null);
     }
     /*==================== Heart Rate END ====================*/
 

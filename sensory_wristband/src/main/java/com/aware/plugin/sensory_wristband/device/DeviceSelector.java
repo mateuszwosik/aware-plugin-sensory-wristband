@@ -14,6 +14,8 @@ public class DeviceSelector {
 
     private static final DeviceSelector deviceSelector = new DeviceSelector();
 
+    private static List<Band> supportedDevices;
+
     public static DeviceSelector getInstance(){
         return deviceSelector;
     }
@@ -23,6 +25,22 @@ public class DeviceSelector {
         bands.add(new MiBand2(context));
         bands.add(new MiBand(context));
         return bands;
+    }
+
+    public void setSupportedDevices(Context context){
+        supportedDevices = new ArrayList<>(2);
+        supportedDevices.add(new MiBand2(context));
+        supportedDevices.add(new MiBand(context));
+    }
+
+    @Nullable
+    public Band getSupportedDevice(BluetoothDevice device){
+        for (Band band : supportedDevices) {
+            if (band.supports(device)){
+                return band;
+            }
+        }
+        return null;
     }
 
     @Nullable

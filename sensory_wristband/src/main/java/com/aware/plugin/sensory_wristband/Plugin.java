@@ -24,6 +24,7 @@ import com.aware.plugin.sensory_wristband.device.Band;
 import com.aware.plugin.sensory_wristband.device.DeviceSelector;
 import com.aware.plugin.sensory_wristband.device.HeartRateNotifyListener;
 import com.aware.plugin.sensory_wristband.device.MiBand.model.BatteryInfo;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.Protocol;
 import com.aware.plugin.sensory_wristband.device.NotifyListener;
 import com.aware.plugin.sensory_wristband.device.RealtimeStepsNotifyListener;
 import com.aware.plugin.sensory_wristband.utils.Device;
@@ -39,6 +40,7 @@ public class Plugin extends Aware_Plugin {
     public static final String ACTION_AWARE_BAND_BATTERY = "ACTION_AWARE_BAND_BATTERY";
     public static final String ACTION_AWARE_BAND_HEART_RATE = "ACTION_AWARE_BAND_HEART_RATE";
     public static final String ACTION_AWARE_BAND_STEPS = "ACTION_AWARE_BAND_STEPS";
+    public static final String ACTION_AWARE_BAND_NAME = "ACTION_AWARE_BAND_NAME";
     public static final String EXTRA_DATA = "extra_data";
 
     /**
@@ -49,14 +51,18 @@ public class Plugin extends Aware_Plugin {
     private static final int TYPE = 0;
 
     private static int UPDATE_BASIC_INFO_PERIOD = 10000;//10s
-    private static int UPDATE_HEART_RATE_PERIOD = 30000;//20s
+    private static int SENSORS_ACTIVATION_DELAY = 5000;//3s
+
+    private static final int HEART_RATE_MAX_VALUE = 221;
+    private static final int HEART_RATE_MIN_VALUE = 39;
+    private static final int HEART_RATE_NO_GET_VALUE = 0;
 
     private BluetoothAdapter bluetoothAdapter;
-    private Band band;
+    private static Band band;
     private static Handler basicInfoHandler;
     private static Runnable basicInfoPeriodicUpdater;
-    private static Handler heartRateHandler;
-    private static Runnable heartRatePeriodicUpdater;
+    private static Handler sensorsActivationHandler;
+    private static Runnable sensorsActivationRunnable;
 
     private static ContextProducer contextProducer;
 
@@ -70,7 +76,7 @@ public class Plugin extends Aware_Plugin {
             if (ScanActivity.ACTION_AWARE_SENSORY_WRISTBAND_SCAN_COMPLETE.equals(intent.getAction())){
                 Device device = (Device) intent.getSerializableExtra(ScanActivity.EXTRA_DEVICE);
                 BluetoothDevice bluetoothDevice = bluetoothAdapter.getRemoteDevice(device.getAddress());
-                band = DeviceSelector.getInstance().getSupportedDevice(bluetoothDevice,getApplicationContext());
+                band = DeviceSelector.getInstance().getSupportedDevice(bluetoothDevice);
                 if (band == null){
                     Log.d(TAG, "Not supported device");
                     Toast.makeText(getApplicationContext(),"Not supported device",Toast.LENGTH_SHORT).show();
@@ -111,6 +117,7 @@ public class Plugin extends Aware_Plugin {
         final BluetoothManager bluetoothManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
         band = null;
+        DeviceSelector.getInstance().setSupportedDevices(this);
 
         IntentFilter deviceIntentFilter = new IntentFilter();
         deviceIntentFilter.addAction(ScanActivity.ACTION_AWARE_SENSORY_WRISTBAND_SCAN_COMPLETE);
@@ -132,12 +139,14 @@ public class Plugin extends Aware_Plugin {
             }
         };
 
-        heartRateHandler = new Handler();
-        heartRatePeriodicUpdater = new Runnable() {
+        sensorsActivationHandler = new Handler();
+        sensorsActivationRunnable = new Runnable() {
             @Override
             public void run() {
-                startHeartRateMeasurement();
-                heartRateHandler.postDelayed(heartRatePeriodicUpdater,UPDATE_HEART_RATE_PERIOD);
+                //Start heart rate continuous measurement
+                startHeartRateMeasurement(Protocol.HEART_RATE_CONTINUOUS_MODE);
+                //Start step notifications
+                startStepNotification();
             }
         };
 
@@ -241,10 +250,11 @@ public class Plugin extends Aware_Plugin {
                     @Override
                     public void onNotify(byte[] data) {
                         Log.d(TAG,"Device disconnected");
+                        basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
+                        stopStepNotification();
+                        stopHeartRateMeasurement(Protocol.HEART_RATE_CONTINUOUS_MODE);
                         band.disconnect();
                         band = null;
-                        basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
-                        heartRateHandler.removeCallbacks(heartRatePeriodicUpdater);
                         contextProducer = new ContextProducer() {
                             @Override
                             public void onContext() {
@@ -283,6 +293,9 @@ public class Plugin extends Aware_Plugin {
                     public void onContext() {
                         Intent intent = new Intent(ACTION_AWARE_BAND_ENABLE_NOTIFICATION);
                         sendBroadcast(intent);
+                        intent = new Intent(ACTION_AWARE_BAND_NAME);
+                        intent.putExtra(EXTRA_DATA,band.getDevice().getName());
+                        sendBroadcast(intent);
                     }
                 };
                 CONTEXT_PRODUCER = contextProducer;
@@ -297,9 +310,8 @@ public class Plugin extends Aware_Plugin {
                 band.setUserInfo(uuid,sex,age,height,weight,alias,TYPE);
                 //Start periodic updaters
                 basicInfoHandler.post(basicInfoPeriodicUpdater);
-                heartRateHandler.post(heartRatePeriodicUpdater);
-                //Start steps notification
-                startStepNotification();
+                //Start after delay sensors notifications
+                sensorsActivationHandler.postDelayed(sensorsActivationRunnable,SENSORS_ACTIVATION_DELAY);
             }
 
             @Override
@@ -413,16 +425,26 @@ public class Plugin extends Aware_Plugin {
      */
     private void enableHeartRateNotification(){
         //Set the heart rate scan notification
-        Log.d(TAG,"Setting heart rate notification.");
         band.setHeartRateScanListener(new HeartRateNotifyListener() {
             @Override
-            public void onNotify(final int heartRate) {
-                Log.d(TAG,"Heart rate: " + heartRate + " bmp");
+            public void onNotify(int heartRate) {
+                if (isHeartRateMeasured(heartRate)) {
+                    if (isHeartRateValid(heartRate)) {
+                        Log.d(TAG, "Heart rate: " + heartRate + " bmp");
+                    } else {
+                        Log.d(TAG, "Heart rate is out of range");
+                        heartRate = 0;
+                    }
+                } else {
+                    Log.d(TAG, "Heart rate not measured");
+                    heartRate = 0;
+                }
+                final int value = heartRate;
                 contextProducer = new ContextProducer() {
                     @Override
                     public void onContext() {
                         Intent intent = new Intent(ACTION_AWARE_BAND_HEART_RATE);
-                        intent.putExtra(EXTRA_DATA, heartRate);
+                        intent.putExtra(EXTRA_DATA, value);
                         sendBroadcast(intent);
                     }
                 };
@@ -441,16 +463,39 @@ public class Plugin extends Aware_Plugin {
 
     /**
      * Start heart rate measurement/scan.
+     * If heart rate mode is not supported it is ignored.
+     * @param heartRateMode - mode of heart rate measurement
      */
-    private void startHeartRateMeasurement(){
-        band.startHeartRateScan();
+    private void startHeartRateMeasurement(byte heartRateMode){
+        band.startHeartRateScan(heartRateMode);
     }
 
     /**
      * Stop heart rate measurement/scan.
+     * If heart rate mode is not supported it is ignored.
+     * @param heartRateMode - mode of heart rate measurement
      */
-    private void stopHeartRateMeasurement(){
-        band.stopHeartRateScan();
+    private void stopHeartRateMeasurement(byte heartRateMode){
+        band.stopHeartRateScan(heartRateMode);
+    }
+
+    /**
+     * Check if heart rate value is correct.
+     * @param heartRate - measured heart rate
+     * @return true - heart rate value valid | false - heart rate value NOT valid
+     */
+    private boolean isHeartRateValid(int heartRate){
+        return heartRate < HEART_RATE_MAX_VALUE && heartRate > HEART_RATE_MIN_VALUE;
+    }
+
+    /**
+     * Check if heart rate is measured.
+     * If heart rate sensor is correctly placed.
+     * @param heartRate - measured heart rate
+     * @return true - heart rate measured | false - heart rate not measured
+     */
+    private boolean isHeartRateMeasured(int heartRate){
+        return heartRate != HEART_RATE_NO_GET_VALUE;
     }
 
 }
