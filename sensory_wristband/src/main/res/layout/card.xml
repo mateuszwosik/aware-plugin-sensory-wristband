@@ -14,14 +14,32 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"/>
 
+    <TextView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/batteryZeroLevel"
+        android:id="@+id/batteryLevelTextView"
+        android:textColor="#000"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="1dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@id/rssiImageView"/>
+
     <ImageView
         android:layout_width="30dp"
         android:layout_height="30dp"
         app:srcCompat="@drawable/battery_level_0"
         android:id="@+id/batteryImageView"
         android:contentDescription="@string/batteryLevel"
-        android:layout_margin="10dp"
-        android:layout_toStartOf="@id/rssiImageView"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_toStartOf="@id/batteryLevelTextView"
         android:layout_alignParentTop="true"/>
 
     <TextView
@@ -37,26 +55,29 @@
         android:layout_toStartOf="@id/batteryImageView"
         android:layout_alignBaseline="@id/batteryImageView" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/heartbeat"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:drawablePadding="10dp"
+        android:text="@string/zeroHeartRate"
+        android:id="@+id/heartRateTextView"
+        android:textColor="#000"
+        android:gravity="center_vertical"
+        android:layout_margin="10dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/rssiImageView"/>
+
     <LinearLayout
-        android:id="@+id/heartRateStepsLinearLayout"
+        android:id="@+id/stepsInfoLinearLayout"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/rssiImageView"
+        android:layout_below="@+id/heartRateTextView"
         android:layout_alignParentStart="true"
-        android:layout_margin="5dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:drawableStart="@drawable/heartbeat"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:drawablePadding="10dp"
-            android:text="@string/zeroHeartRate"
-            android:id="@+id/heartRateTextView"
-            android:textColor="#000"
-            android:gravity="center_vertical"
-            android:layout_weight="1" />
+        android:layout_margin="10dp">
 
         <TextView
             android:text="@string/zeroSteps"
@@ -66,6 +87,30 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:drawablePadding="10dp"
             android:id="@+id/stepsTextView"
+            android:textColor="#000"
+            android:gravity="center_vertical"
+            android:layout_weight="2" />
+
+        <TextView
+            android:text="@string/zeroDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:drawableStart="@drawable/distance"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:drawablePadding="10dp"
+            android:id="@+id/distanceTextView"
+            android:textColor="#000"
+            android:gravity="center_vertical"
+            android:layout_weight="2" />
+
+        <TextView
+            android:text="@string/zeroCalorie"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:drawableStart="@drawable/calories"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:drawablePadding="10dp"
+            android:id="@+id/caloriesTextView"
             android:textColor="#000"
             android:gravity="center_vertical"
             android:layout_weight="2" />
@@ -80,7 +125,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="#000"
         android:gravity="center_vertical"
-        android:layout_below="@id/heartRateStepsLinearLayout"
+        android:layout_below="@id/stepsInfoLinearLayout"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"/>
 

@@ -42,8 +42,8 @@ public class Profile {
     public static final UUID UUID_CHAR_HEART_RATE_MEASUREMENT = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");//NOTIFY //descriptor: 2902
     public static final UUID UUID_CHAR_HEART_RATE_CONTROL_POINT = UUID.fromString("00002a39-0000-1000-8000-00805f9b34fb");//WRITE
 
-    /*=== New service - Unknown Service (MILI_SERVICE?) ===*/
-    public static final UUID UUID_SERVICE_UNKNOWN_1 = UUID.fromString("0000fee0-0000-1000-8000-00805f9b34fb");//MILI_SERVICE??
+    /*=== New service - Mili Service (???) ===*/
+    public static final UUID UUID_SERVICE_MILI = UUID.fromString("0000fee0-0000-1000-8000-00805f9b34fb");
     public static final UUID UUID_CHAR_CURRENT_TIME = UUID.fromString("00002a2b-0000-1000-8000-00805f9b34fb");//READ NOTIFY write //descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_1 = UUID.fromString("00000001-0000-3512-2118-0009af100700");//descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_2 = UUID.fromString("00000002-0000-3512-2118-0009af100700");//descriptor: 2902
@@ -51,8 +51,8 @@ public class Profile {
     public static final UUID UUID_CHAR_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS = UUID.fromString("00002a04-0000-1000-8000-00805f9b34fb");//descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_4 = UUID.fromString("00000004-0000-3512-2118-0009af100700");//descriptor: 2902 !?
     public static final UUID UUID_CHAR_UNKNOWN_5 = UUID.fromString("00000005-0000-3512-2118-0009af100700");//descriptor: 2902
-    public static final UUID UUID_CHAR_UNKNOWN_6 = UUID.fromString("00000006-0000-3512-2118-0009af100700");//descriptor: 2902
-    public static final UUID UUID_CHAR_UNKNOWN_7 = UUID.fromString("00000007-0000-3512-2118-0009af100700");//descriptor: 2902
+    public static final UUID UUID_CHAR_BATTERY = UUID.fromString("00000006-0000-3512-2118-0009af100700");//descriptor: 2902
+    public static final UUID UUID_CHAR_STEPS = UUID.fromString("00000007-0000-3512-2118-0009af100700");//descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_8 = UUID.fromString("00000008-0000-3512-2118-0009af100700");//descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_10 = UUID.fromString("00000010-0000-3512-2118-0009af100700");//descriptor: 2902
 

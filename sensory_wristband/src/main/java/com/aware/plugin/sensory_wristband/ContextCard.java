@@ -4,26 +4,24 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Handler;
-import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.aware.plugin.sensory_wristband.device.MiBand.model.BatteryInfo;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.BatteryInfoMiBand2;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
 import com.aware.utils.IContextCard;
 
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class ContextCard implements IContextCard {
 
     private TextView heartRateTextView;
     private TextView stepsTextView;
+    private TextView distanceTextView;
+    private TextView caloriesTextView;
     private ImageView batteryImageView;
+    private TextView batteryLevelTextView;
     private ImageView rssiImageView;
     private TextView nameTextView;
     private TextView infoTextView;
@@ -31,8 +29,11 @@ public class ContextCard implements IContextCard {
     private static String name = "";
     private static String heartRate ="0 bmp";
     private static String steps = "0";
+    private static String distance = "0 m";
+    private static String calories = "0 kcal";
     private static int rssiResId  = R.drawable.rssi_0;
     private static int batteryResId = R.drawable.battery_level_0;
+    private static int batteryLevel = 0;
     private static String info = "";
 
     //Constructor used to instantiate this card
@@ -49,7 +50,10 @@ public class ContextCard implements IContextCard {
         //Initialize UI elements from the card
         heartRateTextView = (TextView) card.findViewById(R.id.heartRateTextView);
         stepsTextView = (TextView) card.findViewById(R.id.stepsTextView);
+        distanceTextView = (TextView) card.findViewById(R.id.distanceTextView);
+        caloriesTextView = (TextView) card.findViewById(R.id.caloriesTextView);
         batteryImageView = (ImageView) card.findViewById(R.id.batteryImageView);
+        batteryLevelTextView = (TextView) card.findViewById(R.id.batteryLevelTextView);
         rssiImageView = (ImageView) card.findViewById(R.id.rssiImageView);
         nameTextView = (TextView) card.findViewById(R.id.nameTextView);
         infoTextView = (TextView) card.findViewById(R.id.infoTextView);
@@ -58,7 +62,10 @@ public class ContextCard implements IContextCard {
         nameTextView.setText(name);
         rssiImageView.setImageResource(rssiResId);
         batteryImageView.setImageResource(batteryResId);
+        batteryLevelTextView.setText(String.valueOf(batteryLevel));
         stepsTextView.setText(steps);
+        distanceTextView.setText(distance);
+        caloriesTextView.setText(calories);
         heartRateTextView.setText(heartRate);
 
         IntentFilter intentFilter = new IntentFilter();
@@ -97,30 +104,36 @@ public class ContextCard implements IContextCard {
      * Update battery information.
      * @param batteryInfo - battery information
      */
-    private void updateBatteryInfo(final BatteryInfo batteryInfo){
+    private void updateBatteryInfo(final BatteryInfoMiBand2 batteryInfo){
         //cycles:4,level:44,status:unknown,last:2015-04-15 03:37:55
-        int level = batteryInfo.getLevel();
-        if(level > 80){
+        batteryLevel = batteryInfo.getLevel();
+        if(batteryLevel > 80){
             batteryResId = R.drawable.battery_level_4;
-        } else if(level > 60){
+        } else if(batteryLevel > 60){
             batteryResId = R.drawable.battery_level_3;
-        } else if(level > 40){
+        } else if(batteryLevel > 40){
             batteryResId = R.drawable.battery_level_2;
-        } else if(level > 20){
+        } else if(batteryLevel > 20){
             batteryResId = R.drawable.battery_level_1;
         } else {
             batteryResId = R.drawable.battery_level_0;
         }
         batteryImageView.setImageResource(batteryResId);
+        final String level = batteryLevel + "%";
+        batteryLevelTextView.setText(level);
     }
 
     /**
-     * Update number of steps.
-     * @param steps - number of steps
+     * Update steps information.
+     * @param stepsInfo - steps information (steps,distance,calories)
      */
-    private void updateStepNumber(final int steps){
-        ContextCard.steps = String.valueOf(steps);
+    private void updateStepNumber(final StepsInfo stepsInfo){
+        ContextCard.steps = String.valueOf(stepsInfo.getSteps());
+        ContextCard.distance = String.valueOf(stepsInfo.getDistance()) + " m";
+        ContextCard.calories = String.valueOf(stepsInfo.getCalories()) + " kcal";
         stepsTextView.setText(ContextCard.steps);
+        distanceTextView.setText(ContextCard.distance);
+        caloriesTextView.setText(ContextCard.calories);
     }
 
     /**
@@ -155,7 +168,10 @@ public class ContextCard implements IContextCard {
         updateRSSI(0);
         batteryResId = R.drawable.battery_level_0;
         batteryImageView.setImageResource(batteryResId);
-        updateStepNumber(0);
+        batteryLevel = 0;
+        final String level = batteryLevel + "%";
+        batteryLevelTextView.setText(level);
+        updateStepNumber(new StepsInfo(0,0,0));
         heartRate = "0 bpm";
         heartRateTextView.setText(heartRate);
         info = "";
@@ -171,10 +187,10 @@ public class ContextCard implements IContextCard {
                     updateRSSI(intent.getIntExtra(Plugin.EXTRA_DATA,0));
                     break;
                 case Plugin.ACTION_AWARE_BAND_BATTERY:
-                    updateBatteryInfo((BatteryInfo)intent.getSerializableExtra(Plugin.EXTRA_DATA));
+                    updateBatteryInfo((BatteryInfoMiBand2)intent.getSerializableExtra(Plugin.EXTRA_DATA));
                     break;
                 case Plugin.ACTION_AWARE_BAND_STEPS:
-                    updateStepNumber(intent.getIntExtra(Plugin.EXTRA_DATA,0));
+                    updateStepNumber((StepsInfo)intent.getSerializableExtra(Plugin.EXTRA_DATA));
                     break;
                 case Plugin.ACTION_AWARE_BAND_HEART_RATE:
                     updateHeartRate(intent.getIntExtra(Plugin.EXTRA_DATA,0));

@@ -20,8 +20,9 @@ import com.aware.plugin.sensory_wristband.device.ActionCallback;
 import com.aware.plugin.sensory_wristband.device.Band;
 import com.aware.plugin.sensory_wristband.device.DeviceSelector;
 import com.aware.plugin.sensory_wristband.device.HeartRateNotifyListener;
-import com.aware.plugin.sensory_wristband.device.MiBand.model.BatteryInfo;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.BatteryInfoMiBand2;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.Protocol;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
 import com.aware.plugin.sensory_wristband.device.NotifyListener;
 import com.aware.plugin.sensory_wristband.device.RealtimeStepsNotifyListener;
 
@@ -351,26 +352,14 @@ public class MainActivity extends AppCompatActivity {
      * Refresh label with Battery Info of device
      */
     private void refreshBatteryInfo(){
-        band.getBatteryInfo(new ActionCallback() {
-            @Override
-            public void onSuccess(Object data) {
-                BatteryInfo batteryInfo = (BatteryInfo) data;
-                displayBatteryInfo(batteryInfo);
-            }
-
-            @Override
-            public void onFail(int errorCode, String msg) {
-                Log.d(TAG,"Error :" + errorCode + " :: " + msg);
-            }
-        });
     }
 
     /**
      * Display battery information.
      * @param batteryInfo - battery information
      */
-    private void displayBatteryInfo(final BatteryInfo batteryInfo){
-        final String text = "Battery: " + batteryInfo.toString();
+    private void displayBatteryInfo(final BatteryInfoMiBand2 batteryInfo){
+        final String text = batteryInfo.toString();
         //cycles:4,level:44,status:unknown,last:2015-04-15 03:37:55
         Log.d(TAG,text);
         runOnUiThread(new Runnable() {
@@ -424,8 +413,8 @@ public class MainActivity extends AppCompatActivity {
     private void enableStepNotification(){
         band.setRealtimeStepsNotifyListener(new RealtimeStepsNotifyListener() {
             @Override
-            public void onNotify(int steps) {
-                displayStepNumber(steps);
+            public void onNotify(StepsInfo steps) {
+                displayStepNumber(steps.getSteps());
             }
         });
     }

@@ -21,9 +21,13 @@ import javax.crypto.spec.SecretKeySpec;
 
 import com.aware.plugin.sensory_wristband.device.ActionCallback;
 import com.aware.plugin.sensory_wristband.device.Band;
+import com.aware.plugin.sensory_wristband.device.BatteryInfo;
+import com.aware.plugin.sensory_wristband.device.BatteryNotifyListener;
 import com.aware.plugin.sensory_wristband.device.HeartRateNotifyListener;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.BatteryInfoMiBand2;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.Profile;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.Protocol;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
 import com.aware.plugin.sensory_wristband.device.NotifyListener;
 import com.aware.plugin.sensory_wristband.device.RealtimeStepsNotifyListener;
 import com.aware.plugin.sensory_wristband.utils.ByteArray;
@@ -263,8 +267,19 @@ public class MiBand2 implements Band {
 
     /*==================== Battery Information ====================*/
     @Override
-    public void getBatteryInfo(final ActionCallback callback) {
-
+    public void setBatteryInfoListener(final BatteryNotifyListener listener) {
+        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BATTERY, new NotifyListener() {
+            @Override
+            public void onNotify(byte[] data) {
+                BatteryInfo batteryInfo = BatteryInfoMiBand2.fromByteData(data);
+                if (batteryInfo != null){
+                    Log.d(TAG, batteryInfo.toString());
+                    listener.onNotify(batteryInfo);
+                } else {
+                    Log.d(TAG, "BatteryInfo data is incorrect");
+                }
+            }
+        });
     }
     /*==================== Battery Information END ====================*/
 
@@ -341,7 +356,18 @@ public class MiBand2 implements Band {
     /*==================== Steps ====================*/
     @Override
     public void setRealtimeStepsNotifyListener(final RealtimeStepsNotifyListener listener) {
-
+        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_STEPS, new NotifyListener() {
+            @Override
+            public void onNotify(byte[] data) {
+                StepsInfo stepsInfo = StepsInfo.fromByteData(data);
+                if (stepsInfo != null){
+                    Log.d(TAG, stepsInfo.toString());
+                    listener.onNotify(stepsInfo);
+                } else {
+                    Log.d(TAG, "StepsInfo data is incorrect");
+                }
+            }
+        });
     }
 
     @Override

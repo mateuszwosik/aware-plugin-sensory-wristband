@@ -125,9 +125,9 @@ public interface Band {
     /*==================== Battery Information ====================*/
     /**
      * Get battery information.
-     * @param callback - Callback that handles success and fail events
+     * @param listener - Handle returned battery information from the band
      */
-    void getBatteryInfo(final ActionCallback callback);
+    void setBatteryInfoListener(final BatteryNotifyListener listener);
     /*==================== Battery Information END ====================*/
 
     /*==================== User Information ====================*/
@@ -203,7 +203,7 @@ public interface Band {
     /*==================== Steps ====================*/
     /**
      * Set/Enable realtime steps notification.
-     * @param listener - Handle returned number of steps from the band
+     * @param listener - Handle returned steps information from the band
      */
     void setRealtimeStepsNotifyListener(final RealtimeStepsNotifyListener listener);
 

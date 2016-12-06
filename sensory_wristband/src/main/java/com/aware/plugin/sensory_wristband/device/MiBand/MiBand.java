@@ -14,12 +14,15 @@ import java.util.Arrays;
 
 import com.aware.plugin.sensory_wristband.device.ActionCallback;
 import com.aware.plugin.sensory_wristband.device.Band;
+import com.aware.plugin.sensory_wristband.device.BatteryInfo;
+import com.aware.plugin.sensory_wristband.device.BatteryNotifyListener;
 import com.aware.plugin.sensory_wristband.device.HeartRateNotifyListener;
-import com.aware.plugin.sensory_wristband.device.MiBand.model.BatteryInfo;
+import com.aware.plugin.sensory_wristband.device.MiBand.model.BatteryInfoMiBand;
 import com.aware.plugin.sensory_wristband.device.MiBand.model.LedColor;
 import com.aware.plugin.sensory_wristband.device.MiBand.model.Profile;
 import com.aware.plugin.sensory_wristband.device.MiBand.model.Protocol;
 import com.aware.plugin.sensory_wristband.device.MiBand.model.UserInfo;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
 import com.aware.plugin.sensory_wristband.device.NotifyListener;
 import com.aware.plugin.sensory_wristband.device.RealtimeStepsNotifyListener;
 
@@ -184,7 +187,7 @@ public class MiBand implements Band {
 
     /*==================== Battery Information ====================*/
     @Override
-    public void getBatteryInfo(final ActionCallback callback) {
+    public void setBatteryInfoListener(final BatteryNotifyListener listener) {
         ActionCallback ioCallback = new ActionCallback() {
 
             @Override
@@ -192,16 +195,14 @@ public class MiBand implements Band {
                 BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) data;
                 Log.d(TAG, "getBatteryInfo result " + Arrays.toString(characteristic.getValue()));
                 if (characteristic.getValue().length == 10) {
-                    BatteryInfo info = BatteryInfo.fromByteData(characteristic.getValue());
-                    callback.onSuccess(info);
-                } else {
-                    callback.onFail(-1, "result format wrong!");
+                    BatteryInfo info = BatteryInfoMiBand.fromByteData(characteristic.getValue());
+                    listener.onNotify(info);
                 }
             }
 
             @Override
             public void onFail(int errorCode, String msg) {
-                callback.onFail(errorCode, msg);
+
             }
         };
         io.readCharacteristic(Profile.UUID_CHAR_BATTERY, ioCallback);
@@ -312,7 +313,7 @@ public class MiBand implements Band {
                 Log.d(TAG, Arrays.toString(data));
                 if (data.length == 4) {
                     int steps = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
-                    listener.onNotify(steps);
+                    listener.onNotify(new StepsInfo(steps,0,0));
                 }
             }
         });

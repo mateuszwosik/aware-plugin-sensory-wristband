@@ -1,7 +1,6 @@
 package com.aware.plugin.sensory_wristband;
 
 import android.Manifest;
-import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -12,7 +11,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -22,10 +20,12 @@ import com.aware.Aware_Preferences;
 import com.aware.plugin.sensory_wristband.activities.ScanActivity;
 import com.aware.plugin.sensory_wristband.device.ActionCallback;
 import com.aware.plugin.sensory_wristband.device.Band;
+import com.aware.plugin.sensory_wristband.device.BatteryInfo;
+import com.aware.plugin.sensory_wristband.device.BatteryNotifyListener;
 import com.aware.plugin.sensory_wristband.device.DeviceSelector;
 import com.aware.plugin.sensory_wristband.device.HeartRateNotifyListener;
-import com.aware.plugin.sensory_wristband.device.MiBand.model.BatteryInfo;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.Protocol;
+import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
 import com.aware.plugin.sensory_wristband.device.NotifyListener;
 import com.aware.plugin.sensory_wristband.device.RealtimeStepsNotifyListener;
 import com.aware.plugin.sensory_wristband.utils.Device;
@@ -104,10 +104,12 @@ public class Plugin extends Aware_Plugin {
                 /*Enable notifications*/
                 enableHeartRateNotification();
                 enableStepNotification();
+                enableBatteryNotification();
             } else if(ACTION_AWARE_BAND_DISABLE_NOTIFICATION.equalsIgnoreCase(action)) {
                 /*Disable notifications*/
                 disableHeartRateNotification();
                 disableStepNotification();
+                disableBatteryNotification();
             }
         }
     }
@@ -138,7 +140,6 @@ public class Plugin extends Aware_Plugin {
             @Override
             public void run() {
                 refreshRSSI();
-                refreshBatteryInfo();
                 basicInfoHandler.postDelayed(basicInfoPeriodicUpdater,UPDATE_BASIC_INFO_PERIOD);
             }
         };
@@ -158,8 +159,6 @@ public class Plugin extends Aware_Plugin {
             public void run() {
                 //Start heart rate measurement
                 heartRateHandler.post(heartRatePeriodicUpdater);
-                //Start step notifications
-                startStepNotification();
             }
         };
 
@@ -366,12 +365,11 @@ public class Plugin extends Aware_Plugin {
     /**
      * Refresh Battery Info of the device
      */
-    private void refreshBatteryInfo(){
-        band.getBatteryInfo(new ActionCallback() {
+    private void enableBatteryNotification(){
+        band.setBatteryInfoListener(new BatteryNotifyListener() {
             @Override
-            public void onSuccess(Object data) {
-                final BatteryInfo batteryInfo = (BatteryInfo) data;
-                Log.d(TAG,"Battery info: " + batteryInfo.toString());
+            public void onNotify(final BatteryInfo batteryInfo) {
+                Log.d(TAG,batteryInfo.toString());
                 contextProducer = new ContextProducer() {
                     @Override
                     public void onContext() {
@@ -383,12 +381,11 @@ public class Plugin extends Aware_Plugin {
                 CONTEXT_PRODUCER = contextProducer;
                 contextProducer.onContext();
             }
-
-            @Override
-            public void onFail(int errorCode, String msg) {
-                Log.d(TAG,"Failed refreshing Battery Info. Error :" + errorCode + " :: " + msg);
-            }
         });
+    }
+
+    private void disableBatteryNotification(){
+
     }
 
     /**
@@ -397,13 +394,13 @@ public class Plugin extends Aware_Plugin {
     private void enableStepNotification(){
         band.setRealtimeStepsNotifyListener(new RealtimeStepsNotifyListener() {
             @Override
-            public void onNotify(final int steps) {
-                Log.d(TAG,"Number of steps: " + steps);
+            public void onNotify(final StepsInfo stepsInfo) {
+                Log.d(TAG,stepsInfo.toString());
                 contextProducer = new ContextProducer() {
                     @Override
                     public void onContext() {
                         Intent intent = new Intent(ACTION_AWARE_BAND_STEPS);
-                        intent.putExtra(EXTRA_DATA, steps);
+                        intent.putExtra(EXTRA_DATA, stepsInfo);
                         sendBroadcast(intent);
                     }
                 };

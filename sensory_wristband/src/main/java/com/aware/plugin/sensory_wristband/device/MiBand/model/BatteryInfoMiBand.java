@@ -1,5 +1,8 @@
-package com.aware.plugin.sensory_wristband.device.MiBand2.model;
+package com.aware.plugin.sensory_wristband.device.MiBand.model;
 
+import com.aware.plugin.sensory_wristband.device.BatteryInfo;
+
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -7,7 +10,7 @@ import java.util.Locale;
 /**
  * 手环电池相关信息类
  */
-public class BatteryInfo {
+public class BatteryInfoMiBand implements BatteryInfo {
     /**
      * 电池当前所在的状态
      */
@@ -36,15 +39,15 @@ public class BatteryInfo {
     private Status status;
     private Calendar lastChargedDate;
 
-    private BatteryInfo() {
+    private BatteryInfoMiBand() {
 
     }
 
-    public static BatteryInfo fromByteData(byte[] data) {
+    public static BatteryInfoMiBand fromByteData(byte[] data) {
         if (data.length < 10) {
             return null;
         }
-        BatteryInfo info = new BatteryInfo();
+        BatteryInfoMiBand info = new BatteryInfoMiBand();
 
         info.level = data[0];
         info.status = Status.fromByte(data[9]);
@@ -62,6 +65,7 @@ public class BatteryInfo {
         return info;
     }
 
+    @Override
     public String toString() {
         return "cycles:" + this.getCycles()
                 + ",level:" + this.getLevel()
@@ -72,6 +76,7 @@ public class BatteryInfo {
     /**
      * 电池电量百分比, level=40 表示有40%的电量
      */
+    @Override
     public int getLevel() {
         return level;
     }
