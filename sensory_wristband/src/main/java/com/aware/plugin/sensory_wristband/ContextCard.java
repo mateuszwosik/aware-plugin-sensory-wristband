@@ -62,7 +62,8 @@ public class ContextCard implements IContextCard {
         nameTextView.setText(name);
         rssiImageView.setImageResource(rssiResId);
         batteryImageView.setImageResource(batteryResId);
-        batteryLevelTextView.setText(String.valueOf(batteryLevel));
+        final String level = batteryLevel + "%";
+        batteryLevelTextView.setText(level);
         stepsTextView.setText(steps);
         distanceTextView.setText(distance);
         caloriesTextView.setText(calories);
