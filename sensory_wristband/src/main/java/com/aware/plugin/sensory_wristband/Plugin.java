@@ -229,6 +229,10 @@ public class Plugin extends Aware_Plugin {
     public void onDestroy() {
         super.onDestroy();
 
+        if (band != null) {
+            disconnect();
+        }
+
         //Unregister receivers
         unregisterReceiver(deviceBroadcastReceiver);
         unregisterReceiver(enableNotificationReceiver);
@@ -261,22 +265,7 @@ public class Plugin extends Aware_Plugin {
                 band.setDisconnectedListener(new NotifyListener() {
                     @Override
                     public void onNotify(byte[] data) {
-                        Log.d(TAG,"Device disconnected");
-                        basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
-                        heartRateHandler.removeCallbacks(heartRatePeriodicUpdater);
-                        stopStepNotification();
-                        stopHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
-                        band.disconnect();
-                        band = null;
-                        contextProducer = new ContextProducer() {
-                            @Override
-                            public void onContext() {
-                                Intent intent = new Intent(ACTION_AWARE_BAND_DISCONNECTED);
-                                sendBroadcast(intent);
-                            }
-                        };
-                        CONTEXT_PRODUCER = contextProducer;
-                        contextProducer.onContext();
+                        disconnect();
                     }
                 });
                 //Show band services and characteristics
@@ -290,6 +279,28 @@ public class Plugin extends Aware_Plugin {
                 Log.d(TAG,"Failed on connect. Error :" + errorCode + " - " + msg);
             }
         });
+    }
+
+    /**
+     * Disconnect device.
+     */
+    private void disconnect(){
+        Log.d(TAG,"Device disconnected");
+        basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
+        heartRateHandler.removeCallbacks(heartRatePeriodicUpdater);
+        stopStepNotification();
+        stopHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
+        band.disconnect();
+        band = null;
+        contextProducer = new ContextProducer() {
+            @Override
+            public void onContext() {
+                Intent intent = new Intent(ACTION_AWARE_BAND_DISCONNECTED);
+                sendBroadcast(intent);
+            }
+        };
+        CONTEXT_PRODUCER = contextProducer;
+        contextProducer.onContext();
     }
 
     /**
