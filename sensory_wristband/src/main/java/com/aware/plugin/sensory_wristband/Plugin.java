@@ -248,7 +248,6 @@ public class Plugin extends Aware_Plugin {
         Intent scanIntent = new Intent(this, ScanActivity.class);
         scanIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(scanIntent);
-
     }
 
     /**
