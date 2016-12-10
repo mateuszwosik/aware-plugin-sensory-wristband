@@ -38,7 +38,7 @@
 
         <provider
             android:name="com.aware.plugin.sensory_wristband.Provider"
-            android:authorities="${applicationId}.provider.xxx"
+            android:authorities="${applicationId}.provider.plugin.sensory_wristband"
             android:exported="true"
             android:readPermission="com.aware.READ_CONTEXT_DATA"
             android:writePermission="com.aware.WRITE_CONTEXT_DATA" />

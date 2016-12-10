@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -69,6 +70,8 @@ public class Plugin extends Aware_Plugin {
     private static Runnable sensorsActivationRunnable;
 
     private static ContextProducer contextProducer;
+
+    private static StepsInfo stepsInfo = new StepsInfo(0,0,0);
 
     /**
      * BroadcastReceiver responsible for connecting to selected device.
@@ -182,7 +185,7 @@ public class Plugin extends Aware_Plugin {
         //To sync data to the server, you'll need to set this variables from your ContentProvider
         DATABASE_TABLES = Provider.DATABASE_TABLES;
         TABLES_FIELDS = Provider.TABLES_FIELDS;
-        CONTEXT_URIS = new Uri[]{ Provider.TableOne_Data.CONTENT_URI }; //this syncs dummy TableOne_Data to server
+        CONTEXT_URIS = new Uri[]{ Provider.TableHeartRate_Data.CONTENT_URI, Provider.TableSteps_Data.CONTENT_URI}; //this syncs dummy TableOne_Data to server
 
         //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
         Aware.startPlugin(this, "com.aware.plugin.sensory_wristband");
@@ -287,6 +290,8 @@ public class Plugin extends Aware_Plugin {
      */
     private void disconnect(){
         Log.d(TAG,"Device disconnected");
+        saveStepsInfoToDB(Plugin.stepsInfo);
+        Plugin.stepsInfo = new StepsInfo(0,0,0);
         basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
         heartRateHandler.removeCallbacks(heartRatePeriodicUpdater);
         stopStepNotification();
@@ -408,6 +413,7 @@ public class Plugin extends Aware_Plugin {
             @Override
             public void onNotify(final StepsInfo stepsInfo) {
                 Log.d(TAG,stepsInfo.toString());
+                Plugin.stepsInfo = stepsInfo;
                 contextProducer = new ContextProducer() {
                     @Override
                     public void onContext() {
@@ -454,6 +460,7 @@ public class Plugin extends Aware_Plugin {
                 if (isHeartRateMeasured(heartRate)) {
                     if (isHeartRateValid(heartRate)) {
                         Log.d(TAG, "Heart rate: " + heartRate + " bmp");
+                        saveHeartRateToDB(heartRate);
                     } else {
                         Log.d(TAG, "Heart rate is out of range");
                         heartRate = 0;
@@ -519,6 +526,37 @@ public class Plugin extends Aware_Plugin {
      */
     private boolean isHeartRateMeasured(int heartRate){
         return heartRate != HEART_RATE_NO_GET_VALUE;
+    }
+
+    /**
+     * Saves heart rate to database.
+     * @param heartRate - heart rate to save
+     */
+    private void saveHeartRateToDB(final int heartRate){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
+        contentValues.put(Provider.TableHeartRate_Data.TIMESTAMP, System.currentTimeMillis());
+        contentValues.put(Provider.TableHeartRate_Data.HEART_RATE, heartRate);
+        //Inserts data to the ContentProvider
+        getContentResolver().insert(Provider.TableHeartRate_Data.CONTENT_URI, contentValues);
+    }
+
+    /**
+     * Saves StepsInfo to database.
+     *  - Steps
+     *  - Distance
+     *  - Calories
+     * @param stepsInfo - StepsInfo to save
+     */
+    private void saveStepsInfoToDB(final StepsInfo stepsInfo) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
+        contentValues.put(Provider.TableSteps_Data.TIMESTAMP, System.currentTimeMillis());
+        contentValues.put(Provider.TableSteps_Data.STEPS, stepsInfo.getSteps());
+        contentValues.put(Provider.TableSteps_Data.DISTANCE, stepsInfo.getDistance());
+        contentValues.put(Provider.TableSteps_Data.CALORIES, stepsInfo.getCalories());
+        //Inserts data to the ContentProvider
+        getContentResolver().insert(Provider.TableSteps_Data.CONTENT_URI, contentValues);
     }
 
 }
