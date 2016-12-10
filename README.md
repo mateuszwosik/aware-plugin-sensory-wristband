@@ -29,7 +29,7 @@ Field | Type | Description
 _id | INTEGER | primary key auto-incremented
 timestamp | REAL | unix timestamp in milliseconds of sample
 device_id | TEXT | AWARE device ID
-heart_rate | INTEGER | heart rate value
+heart_rate | INTEGER | heart rate value (bpm)
 
 ## Steps Information Table
 > Send on disconnecting the band
