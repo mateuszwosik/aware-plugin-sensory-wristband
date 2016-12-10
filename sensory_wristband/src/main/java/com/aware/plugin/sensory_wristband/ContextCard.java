@@ -74,7 +74,7 @@ public class ContextCard implements IContextCard {
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_BATTERY);
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_HEART_RATE);
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_STEPS);
-        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_NAME);
+        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_CONNECTED);
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_DISCONNECTED);
         context.registerReceiver(dataBroadcastReceiver,intentFilter);
 
@@ -196,7 +196,7 @@ public class ContextCard implements IContextCard {
                 case Plugin.ACTION_AWARE_BAND_HEART_RATE:
                     updateHeartRate(intent.getIntExtra(Plugin.EXTRA_DATA,0));
                     break;
-                case Plugin.ACTION_AWARE_BAND_NAME:
+                case Plugin.ACTION_AWARE_BAND_CONNECTED:
                     setBandName(intent.getStringExtra(Plugin.EXTRA_DATA));
                     break;
                 case Plugin.ACTION_AWARE_BAND_DISCONNECTED:

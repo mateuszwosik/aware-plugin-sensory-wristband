@@ -35,6 +35,7 @@ import com.aware.utils.Aware_Plugin;
 
 public class Plugin extends Aware_Plugin {
 
+    public static final String ACTION_AWARE_BAND_CONNECTED = "ACTION_AWARE_BAND_CONNECTED";
     public static final String ACTION_AWARE_BAND_DISCONNECTED = "ACTION_AWARE_BAND_DISCONNECTED";
     public static final String ACTION_AWARE_BAND_ENABLE_NOTIFICATION = "ACTION_AWARE_BAND_ENABLE_NOTIFICATION";
     public static final String ACTION_AWARE_BAND_DISABLE_NOTIFICATION = "ACTION_AWARE_BAND_DISABLE_NOTIFICATION";
@@ -42,7 +43,6 @@ public class Plugin extends Aware_Plugin {
     public static final String ACTION_AWARE_BAND_BATTERY = "ACTION_AWARE_BAND_BATTERY";
     public static final String ACTION_AWARE_BAND_HEART_RATE = "ACTION_AWARE_BAND_HEART_RATE";
     public static final String ACTION_AWARE_BAND_STEPS = "ACTION_AWARE_BAND_STEPS";
-    public static final String ACTION_AWARE_BAND_NAME = "ACTION_AWARE_BAND_NAME";
     public static final String EXTRA_DATA = "extra_data";
 
     /**
@@ -323,7 +323,7 @@ public class Plugin extends Aware_Plugin {
                     public void onContext() {
                         Intent intent = new Intent(ACTION_AWARE_BAND_ENABLE_NOTIFICATION);
                         sendBroadcast(intent);
-                        Intent nameIntent = new Intent(ACTION_AWARE_BAND_NAME);
+                        Intent nameIntent = new Intent(ACTION_AWARE_BAND_CONNECTED);
                         nameIntent.putExtra(EXTRA_DATA,band.getDevice().getName());
                         sendBroadcast(nameIntent);
                     }
