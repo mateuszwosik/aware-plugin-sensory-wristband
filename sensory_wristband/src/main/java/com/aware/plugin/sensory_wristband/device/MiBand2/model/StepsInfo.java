@@ -51,6 +51,14 @@ public class StepsInfo implements Serializable {
     }
 
     /**
+     * Checks if StepsInfo is empty. Steps, distance, calories are equal to zero.
+     * @return true if empty | false if one of parameters are different then zero
+     */
+    public boolean isStepInfoEmpty() {
+        return getSteps() == 0 && getDistance() == 0 && getCalories() == 0;
+    }
+
+    /**
      * Get StepsInfo from byte data.
      * Length of given data should be equal to 12 bytes (+1 for control data??) = 13 bytes.
      * @param data - bytes from which create StepsInfo

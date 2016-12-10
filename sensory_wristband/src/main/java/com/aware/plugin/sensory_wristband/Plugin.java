@@ -12,6 +12,8 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Handler;
+import android.provider.SyncStateContract;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -30,6 +32,7 @@ import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
 import com.aware.plugin.sensory_wristband.device.NotifyListener;
 import com.aware.plugin.sensory_wristband.device.RealtimeStepsNotifyListener;
 import com.aware.plugin.sensory_wristband.utils.Device;
+import com.aware.providers.Aware_Provider;
 import com.aware.ui.PermissionsHandler;
 import com.aware.utils.Aware_Plugin;
 
@@ -181,6 +184,8 @@ public class Plugin extends Aware_Plugin {
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         REQUIRED_PERMISSIONS.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         REQUIRED_PERMISSIONS.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        REQUIRED_PERMISSIONS.add("com.aware.READ_CONTEXT_DATA");
+        REQUIRED_PERMISSIONS.add("com.aware.WRITE_CONTEXT_DATA");
 
         //To sync data to the server, you'll need to set this variables from your ContentProvider
         DATABASE_TABLES = Provider.DATABASE_TABLES;
@@ -290,8 +295,10 @@ public class Plugin extends Aware_Plugin {
      */
     private void disconnect(){
         Log.d(TAG,"Device disconnected");
-        saveStepsInfoToDB(Plugin.stepsInfo);
-        Plugin.stepsInfo = new StepsInfo(0,0,0);
+        if (!stepsInfo.isStepInfoEmpty()) {
+            saveStepsInfoToDB(Plugin.stepsInfo);
+            Plugin.stepsInfo = new StepsInfo(0, 0, 0);
+        }
         basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
         heartRateHandler.removeCallbacks(heartRatePeriodicUpdater);
         stopStepNotification();
@@ -534,7 +541,7 @@ public class Plugin extends Aware_Plugin {
      */
     private void saveHeartRateToDB(final int heartRate){
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
+        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, "123124583435"/*Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)*/);
         contentValues.put(Provider.TableHeartRate_Data.TIMESTAMP, System.currentTimeMillis());
         contentValues.put(Provider.TableHeartRate_Data.HEART_RATE, heartRate);
         //Inserts data to the ContentProvider
@@ -550,7 +557,7 @@ public class Plugin extends Aware_Plugin {
      */
     private void saveStepsInfoToDB(final StepsInfo stepsInfo) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
+        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, "123124583435"/*Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)*/);
         contentValues.put(Provider.TableSteps_Data.TIMESTAMP, System.currentTimeMillis());
         contentValues.put(Provider.TableSteps_Data.STEPS, stepsInfo.getSteps());
         contentValues.put(Provider.TableSteps_Data.DISTANCE, stepsInfo.getDistance());

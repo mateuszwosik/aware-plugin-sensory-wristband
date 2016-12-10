@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.aware.plugin.sensory_wristband">
 
+    <uses-permission android:name="com.aware.READ_CONTEXT_DATA" />
+    <uses-permission android:name="com.aware.WRITE_CONTEXT_DATA" />
+
     <!-- Users permissions -->
     <!-- Bluetooth -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -38,14 +41,15 @@
 
         <provider
             android:name="com.aware.plugin.sensory_wristband.Provider"
-            android:authorities="${applicationId}.provider.plugin.sensory_wristband"
-            android:exported="true"
-            android:readPermission="com.aware.READ_CONTEXT_DATA"
-            android:writePermission="com.aware.WRITE_CONTEXT_DATA" />
+            android:authorities="${applicationId}.provider.sensory_wristband"
+            android:exported="true" />
 
         <activity android:name=".activities.ScanActivity"
             android:exported="true"
             android:launchMode="singleTop"/>
 
     </application>
+
+    <!--android:readPermission="com.aware.READ_CONTEXT_DATA"
+    android:writePermission="com.aware.WRITE_CONTEXT_DATA"-->
 </manifest>

@@ -6,11 +6,11 @@ group = "com.awareframework"
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "24.0.3"
 
     defaultConfig {
         applicationId "com.aware.plugin.sensory_wristband"
-        minSdkVersion 23
+        minSdkVersion 22
         targetSdkVersion 24
         versionCode version_code
         versionName version_readable

@@ -24,8 +24,8 @@ import java.util.HashMap;
 
 public class Provider extends ContentProvider {
 
-    public static String AUTHORITY = "com.aware.provider.plugin.sensory_wristband";
-    public static final int DATABASE_VERSION = 1;
+    public static String AUTHORITY = "com.aware.plugin.sensory_wristband.provider.sensory_wristband";
+    public static final int DATABASE_VERSION = 3;
 
     public static Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
     public static final String DATABASE_NAME = "plugin_sensory_wristband.db"; //the database filename, use plugin_xxx for plugins.
@@ -57,8 +57,8 @@ public class Provider extends ContentProvider {
      */
     public static final class TableHeartRate_Data implements AWAREColumns {
         public static final Uri CONTENT_URI = Uri.withAppendedPath(Provider.CONTENT_URI, DB_TBL_HEART_RATE);
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.provider.plugin.sensory_wristband.table_heart_rate";
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.provider.plugin.sensory_wristband.table_heart_rate";
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband";
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband";
 
         public static final String HEART_RATE = "heart_rate";
     }
@@ -77,8 +77,8 @@ public class Provider extends ContentProvider {
      */
     public static final class TableSteps_Data implements AWAREColumns {
         public static final Uri CONTENT_URI = Uri.withAppendedPath(Provider.CONTENT_URI, DB_TBL_STEPS);
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.provider.plugin.sensory_wristband.table_steps";
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.provider.plugin.sensory_wristband.table_steps";
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband";
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband";
 
         public static final String STEPS = "steps";
         public static final String DISTANCE = "distance";
@@ -94,7 +94,7 @@ public class Provider extends ContentProvider {
             TableSteps_Data.DEVICE_ID + " text default ''," +
             TableSteps_Data.STEPS + " integer default 0," +
             TableSteps_Data.DISTANCE + " integer default 0," +
-            TableSteps_Data.CALORIES + " integer default 0,";
+            TableSteps_Data.CALORIES + " integer default 0";
 
     /**
      * Share the fields with AWARE so we can replicate the table schema on the server
@@ -109,7 +109,7 @@ public class Provider extends ContentProvider {
     private static DatabaseHelper databaseHelper;
     private static SQLiteDatabase database;
 
-    //For each table, create a hashmap needed for database queries
+    //For each table, create a hashMap needed for database queries
     private static HashMap<String, String> tableHeartRateHashMap;
     private static HashMap<String, String> tableStepsHashMap;
 
@@ -132,7 +132,7 @@ public class Provider extends ContentProvider {
     @Override
     public boolean onCreate() {
         //This is a hack to allow providers to be reusable in any application/plugin by making the authority dynamic using the package name of the parent app
-        AUTHORITY = getContext().getPackageName() + ".provider.plugin.sensory_wristband"; //make sure xxx matches the first string in this class
+        AUTHORITY = getContext().getPackageName() + ".provider.sensory_wristband"; //make sure xxx matches the first string in this class
 
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
@@ -235,6 +235,7 @@ public class Provider extends ContentProvider {
                     getContext().getContentResolver().notifyChange(dataUri, null);
                     return dataUri;
                 }
+                throw new SQLException("Failed to insert row into " + uri);
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
