@@ -1,5 +1,9 @@
 package com.aware.plugin.sensory_wristband.device.MiBand2;
 
+/**
+ * Check: https://github.com/Freeyourgadget/Gadgetbridge
+ */
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -94,7 +98,6 @@ public class MiBand2 implements Band {
         io.setNotifyListener(Profile.UUID_SERVICE_MIBAND2,Profile.UUID_CHARACTERISTIC_AUTH, new NotifyListener() {
             @Override
             public void onNotify(byte[] data) {
-                Log.d("auth","DATA:" + data.length);
                 if (data[0] == Protocol.AUTH_RESPONSE && data[1] == Protocol.AUTH_SECRET_NUMBER[0] && data[2] == Protocol.AUTH_SUCCESS) {
                     //Step TWO
                     io.writeCharacteristic(Profile.UUID_CHARACTERISTIC_AUTH, Protocol.REQUEST_AUTH_RANDOM_KEY);

@@ -9,4 +9,12 @@
         android:persistent="true"
         android:summary="Activate/deactivate plugin" />
 
+    <ListPreference
+        android:defaultValue="30000"
+        android:entries="@array/hr_frequency_readable"
+        android:entryValues="@array/hr_frequency_values"
+        android:key="frequency_heart_rate"
+        android:persistent="true"
+        android:title="Scanning heart rate frequency" />
+
 </PreferenceScreen>

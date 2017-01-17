@@ -12,25 +12,6 @@
     <string name="calories">Calories</string>
     <string name="zeroCalorie">0 kcal</string>
     <string name="bandWrongPosition">Band is in wrong position. Wear band tightly above the wrist and try again.</string>
-
-    <string-array name="heart_rate_frequency_labels">
-        <item>1 hour</item>
-        <item>30 minutes</item>
-        <item>15 minutes</item>
-        <item>10 minutes</item>
-        <item>5 minutes</item>
-        <item>0 minutes</item>
-    </string-array>
-
-    <integer-array name="heart_rate_frequency_values">
-        <item>3600000</item>
-        <item>1800000</item>
-        <item>900000</item>
-        <item>600000</item>
-        <item>300000</item>
-        <item>0</item>
-    </integer-array>
-
     <string name="deviceName">Name</string>
     <string name="deviceUuid">Uuid\'s</string>
     <string name="deviceAddress">Address</string>

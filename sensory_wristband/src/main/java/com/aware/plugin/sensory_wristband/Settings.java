@@ -1,5 +1,6 @@
 package com.aware.plugin.sensory_wristband;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -15,12 +16,10 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 
     //Plugin settings in XML @xml/preferences
     public static final String STATUS_PLUGIN_SENSORY_WRISTBAND = "status_plugin_sensory_wristband";
-    public static final String STATUS_HEART_RATE = "status_heart_rate";
     public static final String FREQUENCY_HEART_RATE = "frequency_heart_rate";
 
     //Plugin settings UI elements
     private static CheckBoxPreference status;
-    private static SwitchPreference heartRateStatus;
     private static ListPreference heartRateFrequencyList;
 
     @Override
@@ -29,6 +28,11 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
         addPreferencesFromResource(R.xml.preferences);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.registerOnSharedPreferenceChangeListener(this);
+        syncSettings();
+    }
+
+    private void syncSettings(){
+        heartRateFrequencyList = (ListPreference)findPreference(FREQUENCY_HEART_RATE);
     }
 
     @Override
@@ -53,6 +57,11 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
             Aware.startPlugin(getApplicationContext(), "com.aware.plugin.sensory_wristband");
         } else {
             Aware.stopPlugin(getApplicationContext(), "com.aware.plugin.sensory_wristband");
+        }
+
+        if(setting.getKey().equals(FREQUENCY_HEART_RATE)){
+            setting.setSummary(sharedPreferences.getString(key,"30000"));
+            Plugin.UPDATE_HEART_RATE_PERIOD = Integer.parseInt(heartRateFrequencyList.getValue());
         }
     }
 }

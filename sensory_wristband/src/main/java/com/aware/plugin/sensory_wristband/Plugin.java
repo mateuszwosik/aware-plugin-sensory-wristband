@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.provider.SyncStateContract;
@@ -56,7 +57,7 @@ public class Plugin extends Aware_Plugin {
     private static final int TYPE = 0;
 
     private static int UPDATE_BASIC_INFO_PERIOD = 10000;//10s
-    private static int UPDATE_HEART_RATE_PERIOD = 30000;//30s
+    public static int UPDATE_HEART_RATE_PERIOD = 30000;//30s
     private static int SENSORS_ACTIVATION_DELAY = 5000;//3s
 
     private static final int HEART_RATE_MAX_VALUE = 221;
@@ -75,6 +76,7 @@ public class Plugin extends Aware_Plugin {
     private static ContextProducer contextProducer;
 
     private static StepsInfo stepsInfo = new StepsInfo(0,0,0);
+
 
     /**
      * BroadcastReceiver responsible for connecting to selected device.
@@ -190,7 +192,7 @@ public class Plugin extends Aware_Plugin {
         //To sync data to the server, you'll need to set this variables from your ContentProvider
         DATABASE_TABLES = Provider.DATABASE_TABLES;
         TABLES_FIELDS = Provider.TABLES_FIELDS;
-        CONTEXT_URIS = new Uri[]{ Provider.TableHeartRate_Data.CONTENT_URI, Provider.TableSteps_Data.CONTENT_URI}; //this syncs dummy TableOne_Data to server
+        CONTEXT_URIS = new Uri[]{ Provider.TableHeartRate_Data.CONTENT_URI, Provider.TableSteps_Data.CONTENT_URI};
 
         //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
         Aware.startPlugin(this, "com.aware.plugin.sensory_wristband");
@@ -541,7 +543,7 @@ public class Plugin extends Aware_Plugin {
      */
     private void saveHeartRateToDB(final int heartRate){
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, "123124583435"/*Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)*/);
+        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, getDeviceID() /*"123124583435"Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)*/);
         contentValues.put(Provider.TableHeartRate_Data.TIMESTAMP, System.currentTimeMillis());
         contentValues.put(Provider.TableHeartRate_Data.HEART_RATE, heartRate);
         //Inserts data to the ContentProvider
@@ -557,13 +559,25 @@ public class Plugin extends Aware_Plugin {
      */
     private void saveStepsInfoToDB(final StepsInfo stepsInfo) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, "123124583435"/*Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)*/);
+        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, getDeviceID() /*"123124583435"Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)*/);
         contentValues.put(Provider.TableSteps_Data.TIMESTAMP, System.currentTimeMillis());
         contentValues.put(Provider.TableSteps_Data.STEPS, stepsInfo.getSteps());
         contentValues.put(Provider.TableSteps_Data.DISTANCE, stepsInfo.getDistance());
         contentValues.put(Provider.TableSteps_Data.CALORIES, stepsInfo.getCalories());
         //Inserts data to the ContentProvider
         getContentResolver().insert(Provider.TableSteps_Data.CONTENT_URI, contentValues);
+    }
+
+    public String getDeviceID(){
+        String id = "";
+        String[] columns = {"device_id"};
+        Uri AWARE_DEVICE_URI = Uri.parse("content://com.aware.provider.aware/aware_device");
+        Cursor cursor = getContentResolver().query(AWARE_DEVICE_URI,columns,null,null,null);
+        if (cursor != null && cursor.moveToFirst()){
+            id = cursor.getString(cursor.getColumnIndex("device_id"));
+            cursor.close();
+        }
+        return id;
     }
 
 }
