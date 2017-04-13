@@ -14,6 +14,9 @@ android {
         targetSdkVersion 24
         versionCode version_code
         versionName version_readable
+        jackOptions {
+            enabled true
+        }
     }
 
     signingConfigs {
@@ -36,6 +39,10 @@ android {
 
     lintOptions {
         abortOnError false
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
     }
 }
 

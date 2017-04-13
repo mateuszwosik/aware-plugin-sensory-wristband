@@ -13,8 +13,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
-import android.provider.SyncStateContract;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -24,16 +22,10 @@ import com.aware.Aware_Preferences;
 import com.aware.plugin.sensory_wristband.activities.ScanActivity;
 import com.aware.plugin.sensory_wristband.device.ActionCallback;
 import com.aware.plugin.sensory_wristband.device.Band;
-import com.aware.plugin.sensory_wristband.device.BatteryInfo;
-import com.aware.plugin.sensory_wristband.device.BatteryNotifyListener;
 import com.aware.plugin.sensory_wristband.device.DeviceSelector;
-import com.aware.plugin.sensory_wristband.device.HeartRateNotifyListener;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.Protocol;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
-import com.aware.plugin.sensory_wristband.device.NotifyListener;
-import com.aware.plugin.sensory_wristband.device.RealtimeStepsNotifyListener;
 import com.aware.plugin.sensory_wristband.utils.Device;
-import com.aware.providers.Aware_Provider;
 import com.aware.ui.PermissionsHandler;
 import com.aware.utils.Aware_Plugin;
 
@@ -53,8 +45,8 @@ public class Plugin extends Aware_Plugin {
      * Set 1 - need to confirm each match/pairing. Just like in the official application.
      * Set 0 - no need for confirmation when User ID is the same as previous.
      *         In case device does not respond will be sent to normal notification listener with value 3
+     * private static final int TYPE = 0;
      */
-    private static final int TYPE = 0;
 
     private static int UPDATE_BASIC_INFO_PERIOD = 10000;//10s
     public static int UPDATE_HEART_RATE_PERIOD = 30000;//30s
@@ -144,42 +136,28 @@ public class Plugin extends Aware_Plugin {
 
         //Get signal strength and battery info cyclically
         basicInfoHandler = new Handler();
-        basicInfoPeriodicUpdater = new Runnable() {
-            @Override
-            public void run() {
-                refreshRSSI();
-                basicInfoHandler.postDelayed(basicInfoPeriodicUpdater,UPDATE_BASIC_INFO_PERIOD);
-            }
+        basicInfoPeriodicUpdater = () -> {
+            refreshRSSI();
+            basicInfoHandler.postDelayed(basicInfoPeriodicUpdater,UPDATE_BASIC_INFO_PERIOD);
         };
 
         heartRateHandler = new Handler();
-        heartRatePeriodicUpdater = new Runnable() {
-            @Override
-            public void run() {
-                startHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
-                heartRateHandler.postDelayed(heartRatePeriodicUpdater,UPDATE_HEART_RATE_PERIOD);
-            }
+        heartRatePeriodicUpdater = () -> {
+            startHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
+            heartRateHandler.postDelayed(heartRatePeriodicUpdater,UPDATE_HEART_RATE_PERIOD);
         };
 
         sensorsActivationHandler = new Handler();
-        sensorsActivationRunnable = new Runnable() {
-            @Override
-            public void run() {
-                //Start heart rate measurement
-                heartRateHandler.post(heartRatePeriodicUpdater);
-            }
+        sensorsActivationRunnable = () -> {
+            //Start heart rate measurement
+            heartRateHandler.post(heartRatePeriodicUpdater);
         };
 
         //Any active plugin/sensor shares its overall context using broadcasts
-        contextProducer = new ContextProducer() {
-            @Override
-            public void onContext() {
-
-            }
-        };
+        contextProducer = () -> {};
         CONTEXT_PRODUCER = contextProducer;
 
-        //Add permissions you need (Support for Android M)
+        //Add permissions you need (Support for Android >= M)
         REQUIRED_PERMISSIONS.add(Manifest.permission.BLUETOOTH);
         REQUIRED_PERMISSIONS.add(Manifest.permission.BLUETOOTH_ADMIN);
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -273,12 +251,7 @@ public class Plugin extends Aware_Plugin {
             public void onSuccess(Object data) {
                 Log.d(TAG,"Connected to band");
                 //Set on disconnect listener
-                band.setDisconnectedListener(new NotifyListener() {
-                    @Override
-                    public void onNotify(byte[] data) {
-                        disconnect();
-                    }
-                });
+                band.setDisconnectedListener((d) -> disconnect());
                 //Show band services and characteristics
                 band.showServicesAndCharacteristics();
                 //Pair/Authenticate band
@@ -287,7 +260,7 @@ public class Plugin extends Aware_Plugin {
 
             @Override
             public void onFail(int errorCode, String msg) {
-                Log.d(TAG,"Failed on connect. Error :" + errorCode + " - " + msg);
+                Log.e(TAG,"Failed on connect. Error :" + errorCode + " - " + msg);
             }
         });
     }
@@ -307,12 +280,9 @@ public class Plugin extends Aware_Plugin {
         stopHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
         band.disconnect();
         band = null;
-        contextProducer = new ContextProducer() {
-            @Override
-            public void onContext() {
-                Intent intent = new Intent(ACTION_AWARE_BAND_DISCONNECTED);
-                sendBroadcast(intent);
-            }
+        contextProducer = () -> {
+            Intent intent = new Intent(ACTION_AWARE_BAND_DISCONNECTED);
+            sendBroadcast(intent);
         };
         CONTEXT_PRODUCER = contextProducer;
         contextProducer.onContext();
@@ -327,26 +297,15 @@ public class Plugin extends Aware_Plugin {
             public void onSuccess(Object data) {
                 Log.d(TAG,"Successful pairing");
                 //After successful pairing enable notification os supported band services
-                contextProducer = new ContextProducer() {
-                    @Override
-                    public void onContext() {
-                        Intent intent = new Intent(ACTION_AWARE_BAND_ENABLE_NOTIFICATION);
-                        sendBroadcast(intent);
-                        Intent nameIntent = new Intent(ACTION_AWARE_BAND_CONNECTED);
-                        nameIntent.putExtra(EXTRA_DATA,band.getDevice().getName());
-                        sendBroadcast(nameIntent);
-                    }
+                contextProducer = () -> {
+                    Intent intent = new Intent(ACTION_AWARE_BAND_ENABLE_NOTIFICATION);
+                    sendBroadcast(intent);
+                    Intent nameIntent = new Intent(ACTION_AWARE_BAND_CONNECTED);
+                    nameIntent.putExtra(EXTRA_DATA,band.getDevice().getName());
+                    sendBroadcast(nameIntent);
                 };
                 CONTEXT_PRODUCER = contextProducer;
                 contextProducer.onContext();
-                //Set user info to band
-                int uuid = 20202;
-                int sex = 1;
-                int age = 30;
-                int height = 180;
-                int weight = 80;
-                String alias = "test";
-                band.setUserInfo(uuid,sex,age,height,weight,alias,TYPE);
                 //Start periodic updaters
                 basicInfoHandler.post(basicInfoPeriodicUpdater);
                 //Start after delay sensors notifications
@@ -355,7 +314,7 @@ public class Plugin extends Aware_Plugin {
 
             @Override
             public void onFail(int errorCode, String msg) {
-                Log.d(TAG,"Failed when pairing. Error: " + errorCode + " :: "+ msg);
+                Log.e(TAG,"Failed when pairing. Error: " + errorCode + " :: "+ msg);
             }
         });
     }
@@ -369,13 +328,10 @@ public class Plugin extends Aware_Plugin {
             public void onSuccess(Object data) {
                 final int rssi = (int) data;
                 Log.d(TAG,"Rssi: " + rssi);
-                contextProducer = new ContextProducer() {
-                    @Override
-                    public void onContext() {
-                        Intent intent = new Intent(ACTION_AWARE_BAND_RSSI);
-                        intent.putExtra(EXTRA_DATA,rssi);
-                        sendBroadcast(intent);
-                    }
+                contextProducer = () -> {
+                    Intent intent = new Intent(ACTION_AWARE_BAND_RSSI);
+                    intent.putExtra(EXTRA_DATA,rssi);
+                    sendBroadcast(intent);
                 };
                 CONTEXT_PRODUCER = contextProducer;
                 contextProducer.onContext();
@@ -383,7 +339,7 @@ public class Plugin extends Aware_Plugin {
 
             @Override
             public void onFail(int errorCode, String msg) {
-                Log.d(TAG,"Failed refreshing RSSI. Error :" + errorCode + " :: " + msg);
+                Log.e(TAG,"Failed refreshing RSSI. Error :" + errorCode + " :: " + msg);
             }
         });
     }
@@ -392,21 +348,15 @@ public class Plugin extends Aware_Plugin {
      * Refresh Battery Info of the device
      */
     private void enableBatteryNotification(){
-        band.setBatteryInfoListener(new BatteryNotifyListener() {
-            @Override
-            public void onNotify(final BatteryInfo batteryInfo) {
-                Log.d(TAG,batteryInfo.toString());
-                contextProducer = new ContextProducer() {
-                    @Override
-                    public void onContext() {
-                        Intent intent = new Intent(ACTION_AWARE_BAND_BATTERY);
-                        intent.putExtra(EXTRA_DATA, batteryInfo);
-                        sendBroadcast(intent);
-                    }
-                };
-                CONTEXT_PRODUCER = contextProducer;
-                contextProducer.onContext();
-            }
+        band.setBatteryInfoListener((batteryInfo) -> {
+            Log.d(TAG,batteryInfo.toString());
+            contextProducer = () -> {
+                Intent intent = new Intent(ACTION_AWARE_BAND_BATTERY);
+                intent.putExtra(EXTRA_DATA, batteryInfo);
+                sendBroadcast(intent);
+            };
+            CONTEXT_PRODUCER = contextProducer;
+            contextProducer.onContext();
         });
     }
 
@@ -418,23 +368,18 @@ public class Plugin extends Aware_Plugin {
      * Enable real-time notification of the number of steps.
      */
     private void enableStepNotification(){
-        band.setRealtimeStepsNotifyListener(new RealtimeStepsNotifyListener() {
-            @Override
-            public void onNotify(final StepsInfo stepsInfo) {
-                Log.d(TAG,stepsInfo.toString());
-                Plugin.stepsInfo = stepsInfo;
-                contextProducer = new ContextProducer() {
-                    @Override
-                    public void onContext() {
-                        Intent intent = new Intent(ACTION_AWARE_BAND_STEPS);
-                        intent.putExtra(EXTRA_DATA, stepsInfo);
-                        sendBroadcast(intent);
-                    }
-                };
-                CONTEXT_PRODUCER = contextProducer;
-                contextProducer.onContext();
-            }
+        band.setRealtimeStepsNotifyListener((stepsInfo) -> {
+            Log.d(TAG,stepsInfo.toString());
+            Plugin.stepsInfo = stepsInfo;
+            contextProducer = () -> {
+                Intent intent = new Intent(ACTION_AWARE_BAND_STEPS);
+                intent.putExtra(EXTRA_DATA, stepsInfo);
+                sendBroadcast(intent);
+            };
+            CONTEXT_PRODUCER = contextProducer;
+            contextProducer.onContext();
         });
+        startStepNotification();
     }
 
     /**
@@ -463,33 +408,27 @@ public class Plugin extends Aware_Plugin {
      */
     private void enableHeartRateNotification(){
         //Set the heart rate scan notification
-        band.setHeartRateScanListener(new HeartRateNotifyListener() {
-            @Override
-            public void onNotify(int heartRate) {
-                if (isHeartRateMeasured(heartRate)) {
-                    if (isHeartRateValid(heartRate)) {
-                        Log.d(TAG, "Heart rate: " + heartRate + " bmp");
-                        saveHeartRateToDB(heartRate);
-                    } else {
-                        Log.d(TAG, "Heart rate is out of range");
-                        heartRate = 0;
-                    }
+        band.setHeartRateScanListener((heartRate) -> {
+            if (isHeartRateMeasured(heartRate)) {
+                if (isHeartRateValid(heartRate)) {
+                    Log.d(TAG, "Heart rate: " + heartRate + " bmp");
+                    saveHeartRateToDB(heartRate);
                 } else {
-                    Log.d(TAG, "Heart rate not measured");
+                    Log.d(TAG, "Heart rate is out of range");
                     heartRate = 0;
                 }
-                final int value = heartRate;
-                contextProducer = new ContextProducer() {
-                    @Override
-                    public void onContext() {
-                        Intent intent = new Intent(ACTION_AWARE_BAND_HEART_RATE);
-                        intent.putExtra(EXTRA_DATA, value);
-                        sendBroadcast(intent);
-                    }
-                };
-                CONTEXT_PRODUCER = contextProducer;
-                contextProducer.onContext();
+            } else {
+                Log.d(TAG, "Heart rate not measured");
+                heartRate = 0;
             }
+            final int value = heartRate;
+            contextProducer = () -> {
+                Intent intent = new Intent(ACTION_AWARE_BAND_HEART_RATE);
+                intent.putExtra(EXTRA_DATA, value);
+                sendBroadcast(intent);
+            };
+            CONTEXT_PRODUCER = contextProducer;
+            contextProducer.onContext();
         });
     }
 
