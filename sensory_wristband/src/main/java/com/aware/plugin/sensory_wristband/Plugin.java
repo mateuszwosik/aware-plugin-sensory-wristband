@@ -482,7 +482,7 @@ public class Plugin extends Aware_Plugin {
      */
     private void saveHeartRateToDB(final int heartRate){
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, getDeviceID() /*"123124583435"Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)*/);
+        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)); //getDeviceID()
         contentValues.put(Provider.TableHeartRate_Data.TIMESTAMP, System.currentTimeMillis());
         contentValues.put(Provider.TableHeartRate_Data.HEART_RATE, heartRate);
         //Inserts data to the ContentProvider
@@ -498,7 +498,7 @@ public class Plugin extends Aware_Plugin {
      */
     private void saveStepsInfoToDB(final StepsInfo stepsInfo) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, getDeviceID() /*"123124583435"Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)*/);
+        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)); //getDeviceID()
         contentValues.put(Provider.TableSteps_Data.TIMESTAMP, System.currentTimeMillis());
         contentValues.put(Provider.TableSteps_Data.STEPS, stepsInfo.getSteps());
         contentValues.put(Provider.TableSteps_Data.DISTANCE, stepsInfo.getDistance());
