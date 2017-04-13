@@ -249,4 +249,13 @@ public interface Band {
      */
     void stopHeartRateScan(byte heartRateMode);
     /*==================== Heart Rate END ====================*/
+
+    /*==================== Button ====================*/
+
+    /**
+     * Set/Enable Button notifications when it will be touched.
+     * @param listener - listener that will be notify when button will be touched
+     */
+    void setButtonListener(final NotifyListener listener);
+    /*==================== Button END ====================*/
 }

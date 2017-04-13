@@ -23,10 +23,10 @@ public class Profile {
     public static final UUID UUID_CHAR_SYSTEM_ID = UUID.fromString("00002a23-0000-1000-8000-00805f9b34fb");//READ
     public static final UUID UUID_CHAR_PNP_ID = UUID.fromString("00002a50-0000-1000-8000-00805f9b34fb");//READ
 
-    /*=== New service - Xiaomi Weight (Weight Scale??) ===*/
-    public static final UUID UUID_SERVICE_XIAOMI_WEIGHT = UUID.fromString("00001530-0000-3512-2118-0009af100700");
-    public static final UUID UUID_CHAR_XIAOMI_WEIGHT_1 = UUID.fromString("00001531-0000-3512-2118-0009af100700");//INDICATE?? //descriptor: 2902
-    public static final UUID UUID_CHAR_XIAOMI_WEIGHT_2 = UUID.fromString("00001532-0000-3512-2118-0009af100700");//WRITE??
+    /*=== New service - Firmware ===*/
+    public static final UUID UUID_SERVICE_FIRMWARE = UUID.fromString("00001530-0000-3512-2118-0009af100700");
+    public static final UUID UUID_CHAR_FIRMWARE = UUID.fromString("00001531-0000-3512-2118-0009af100700");//INDICATE?? //descriptor: 2902
+    public static final UUID UUID_CHAR_FIRMWARE_DATA = UUID.fromString("00001532-0000-3512-2118-0009af100700");//WRITE??
 
     /*=== New service - Alert Notification ===*/
     public static final UUID UUID_SERVICE_ALERT_NOTIFICATION = UUID.fromString("00001811-0000-1000-8000-00805f9b34fb");
@@ -47,14 +47,14 @@ public class Profile {
     public static final UUID UUID_CHAR_CURRENT_TIME = UUID.fromString("00002a2b-0000-1000-8000-00805f9b34fb");//READ NOTIFY write //descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_1 = UUID.fromString("00000001-0000-3512-2118-0009af100700");//descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_2 = UUID.fromString("00000002-0000-3512-2118-0009af100700");//descriptor: 2902
-    public static final UUID UUID_CHAR_UNKNOWN_3 = UUID.fromString("00000003-0000-3512-2118-0009af100700");//descriptor: 2902 !?
+    public static final UUID UUID_CHAR_CONFIGURATION = UUID.fromString("00000003-0000-3512-2118-0009af100700");//descriptor: 2902 !?
     public static final UUID UUID_CHAR_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS = UUID.fromString("00002a04-0000-1000-8000-00805f9b34fb");//descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_4 = UUID.fromString("00000004-0000-3512-2118-0009af100700");//descriptor: 2902 !?
-    public static final UUID UUID_CHAR_UNKNOWN_5 = UUID.fromString("00000005-0000-3512-2118-0009af100700");//descriptor: 2902
+    public static final UUID UUID_CHAR_ACTIVITY_DATA = UUID.fromString("00000005-0000-3512-2118-0009af100700");//descriptor: 2902
     public static final UUID UUID_CHAR_BATTERY = UUID.fromString("00000006-0000-3512-2118-0009af100700");//descriptor: 2902
     public static final UUID UUID_CHAR_STEPS = UUID.fromString("00000007-0000-3512-2118-0009af100700");//descriptor: 2902
     public static final UUID UUID_CHAR_UNKNOWN_8 = UUID.fromString("00000008-0000-3512-2118-0009af100700");//descriptor: 2902
-    public static final UUID UUID_CHAR_UNKNOWN_10 = UUID.fromString("00000010-0000-3512-2118-0009af100700");//descriptor: 2902
+    public static final UUID UUID_CHAR_BUTTON = UUID.fromString("00000010-0000-3512-2118-0009af100700");//descriptor: 2902
 
     /*=== New service - MiBand 2 Service ===*/
     public static final UUID UUID_SERVICE_MIBAND2 = UUID.fromString("0000fee1-0000-1000-8000-00805f9b34fb");

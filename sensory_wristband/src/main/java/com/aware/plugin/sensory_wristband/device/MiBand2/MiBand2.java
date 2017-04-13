@@ -83,37 +83,31 @@ public class MiBand2 implements Band {
     @Override
     public void pair(final ActionCallback callback) {
         //After successful descriptor write start authentication
-        io.setAuthenticationListener(new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                if (data == null){
-                    //Step ONE
-                    byte[] sendKey = ByteArray.merge(Protocol.AUTH_SECRET_NUMBER, Protocol.AUTH_BYTE, Protocol.AUTH_SECRET_KEY);
-                    io.writeCharacteristic(Profile.UUID_CHARACTERISTIC_AUTH, sendKey);
-                }
+        io.setAuthenticationListener(data -> {
+            if (data == null){
+                //Step ONE
+                byte[] sendKey = ByteArray.merge(Protocol.AUTH_SECRET_NUMBER, Protocol.AUTH_BYTE, Protocol.AUTH_SECRET_KEY);
+                io.writeCharacteristic(Profile.UUID_CHARACTERISTIC_AUTH, sendKey);
             }
         });
 
         //Set notification for authentication
-        io.setNotifyListener(Profile.UUID_SERVICE_MIBAND2,Profile.UUID_CHARACTERISTIC_AUTH, new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                if (data[0] == Protocol.AUTH_RESPONSE && data[1] == Protocol.AUTH_SECRET_NUMBER[0] && data[2] == Protocol.AUTH_SUCCESS) {
-                    //Step TWO
-                    io.writeCharacteristic(Profile.UUID_CHARACTERISTIC_AUTH, Protocol.REQUEST_AUTH_RANDOM_KEY);
-                } else if (data[0] == Protocol.AUTH_RESPONSE && data[1] == Protocol.REQUEST_AUTH_RANDOM_NUMBER[0] && data[2] == Protocol.AUTH_SUCCESS) {
-                    //Step THREE
-                    byte[] encryptedKey = ByteArray.merge(Protocol.AUTH_ENCRYPTED_NUMBER, Protocol.AUTH_BYTE, encryptKey(data));
-                    io.writeCharacteristic(Profile.UUID_CHARACTERISTIC_AUTH, encryptedKey);
-                } else if (data[0] == Protocol.AUTH_RESPONSE && data[1] == Protocol.AUTH_ENCRYPTED_NUMBER[0] && data[2] == Protocol.AUTH_SUCCESS) {
-                    callback.onSuccess(null);
-                } else if (data[0] == Protocol.AUTH_RESPONSE && data[2] == Protocol.AUTH_FAIL) {
-                    Log.d("Authentication","Authentication failed. Try again.");
-                    callback.onFail(-2, "Authentication failed");
-                } else {
-                    Log.d("Authentication","Something is wrong. Incorrect response.");
-                    callback.onFail(-1, "Unhandled response from the device");
-                }
+        io.setNotifyListener(Profile.UUID_SERVICE_MIBAND2,Profile.UUID_CHARACTERISTIC_AUTH, data -> {
+            if (data[0] == Protocol.AUTH_RESPONSE && data[1] == Protocol.AUTH_SECRET_NUMBER[0] && data[2] == Protocol.AUTH_SUCCESS) {
+                //Step TWO
+                io.writeCharacteristic(Profile.UUID_CHARACTERISTIC_AUTH, Protocol.REQUEST_AUTH_RANDOM_KEY);
+            } else if (data[0] == Protocol.AUTH_RESPONSE && data[1] == Protocol.REQUEST_AUTH_RANDOM_NUMBER[0] && data[2] == Protocol.AUTH_SUCCESS) {
+                //Step THREE
+                byte[] encryptedKey = ByteArray.merge(Protocol.AUTH_ENCRYPTED_NUMBER, Protocol.AUTH_BYTE, encryptKey(data));
+                io.writeCharacteristic(Profile.UUID_CHARACTERISTIC_AUTH, encryptedKey);
+            } else if (data[0] == Protocol.AUTH_RESPONSE && data[1] == Protocol.AUTH_ENCRYPTED_NUMBER[0] && data[2] == Protocol.AUTH_SUCCESS) {
+                callback.onSuccess(null);
+            } else if (data[0] == Protocol.AUTH_RESPONSE && data[2] == Protocol.AUTH_FAIL) {
+                Log.d("Authentication","Authentication failed. Try again.");
+                callback.onFail(-2, "Authentication failed");
+            } else {
+                Log.d("Authentication","Something is wrong. Incorrect response.");
+                callback.onFail(-1, "Unhandled response from the device");
             }
         });
     }
@@ -271,16 +265,13 @@ public class MiBand2 implements Band {
     /*==================== Battery Information ====================*/
     @Override
     public void setBatteryInfoListener(final BatteryNotifyListener listener) {
-        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BATTERY, new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                BatteryInfo batteryInfo = BatteryInfoMiBand2.fromByteData(data);
-                if (batteryInfo != null){
-                    Log.d(TAG, batteryInfo.toString());
-                    listener.onNotify(batteryInfo);
-                } else {
-                    Log.d(TAG, "BatteryInfo data is incorrect");
-                }
+        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BATTERY, data -> {
+            BatteryInfo batteryInfo = BatteryInfoMiBand2.fromByteData(data);
+            if (batteryInfo != null){
+                Log.d(TAG, batteryInfo.toString());
+                listener.onNotify(batteryInfo);
+            } else {
+                Log.d(TAG, "BatteryInfo data is incorrect");
             }
         });
     }
@@ -359,16 +350,13 @@ public class MiBand2 implements Band {
     /*==================== Steps ====================*/
     @Override
     public void setRealtimeStepsNotifyListener(final RealtimeStepsNotifyListener listener) {
-        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_STEPS, new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                StepsInfo stepsInfo = StepsInfo.fromByteData(data);
-                if (stepsInfo != null){
-                    Log.d(TAG, stepsInfo.toString());
-                    listener.onNotify(stepsInfo);
-                } else {
-                    Log.d(TAG, "StepsInfo data is incorrect");
-                }
+        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_STEPS, data -> {
+            StepsInfo stepsInfo = StepsInfo.fromByteData(data);
+            if (stepsInfo != null){
+                Log.d(TAG, stepsInfo.toString());
+                listener.onNotify(stepsInfo);
+            } else {
+                Log.d(TAG, "StepsInfo data is incorrect");
             }
         });
     }
@@ -393,14 +381,11 @@ public class MiBand2 implements Band {
     @Override
     public void setHeartRateScanListener(final HeartRateNotifyListener listener) {
         //TODO - change heart rate calculation base on format of response
-        io.setNotifyListener(Profile.UUID_SERVICE_HEART_RATE, Profile.UUID_CHAR_HEART_RATE_MEASUREMENT, new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                Log.d(TAG, Arrays.toString(data));
-                if (data.length == 2) { // && data[0] == 6
-                    int heartRate = data[1] & 0xFF;
-                    listener.onNotify(heartRate);
-                }
+        io.setNotifyListener(Profile.UUID_SERVICE_HEART_RATE, Profile.UUID_CHAR_HEART_RATE_MEASUREMENT, data -> {
+            Log.d(TAG, Arrays.toString(data));
+            if (data.length == 2) { // && data[0] == 6
+                int heartRate = data[1] & 0xFF;
+                listener.onNotify(heartRate);
             }
         });
     }
@@ -421,31 +406,13 @@ public class MiBand2 implements Band {
     }
     /*==================== Heart Rate END ====================*/
 
-    /*==================== Xiaomi Weight ====================*/
-    public void setWeightListener(final NotifyListener listener){
-        io.setNotifyListener(Profile.UUID_SERVICE_XIAOMI_WEIGHT, Profile.UUID_CHAR_XIAOMI_WEIGHT_1, new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                Log.d(TAG, Arrays.toString(data));
-                listener.onNotify(data);
-            }
+    /*==================== Button ====================*/
+    @Override
+    public void setButtonListener(final NotifyListener listener){
+        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BUTTON, (data) -> {
+            Log.d(TAG, "Button touched: " + Arrays.toString(data));
+            listener.onNotify(data);
         });
     }
-
-    public void writeWeight(){
-        byte[] value = {13,2,1};
-        io.writeCharacteristic(Profile.UUID_SERVICE_XIAOMI_WEIGHT, Profile.UUID_CHAR_XIAOMI_WEIGHT_2, value, new ActionCallback() {
-            @Override
-            public void onSuccess(Object data) {
-                Log.d(TAG, "WRITE WEIGHT SUCCESS. " + data);
-            }
-
-            @Override
-            public void onFail(int errorCode, String msg) {
-                Log.d(TAG, "WRITE WEIGHT FAIL." + errorCode + " :: " + msg);
-            }
-        });
-    }
-    /*==================== Xiaomi Weight END ====================*/
-
+    /*==================== Button END ====================*/
 }

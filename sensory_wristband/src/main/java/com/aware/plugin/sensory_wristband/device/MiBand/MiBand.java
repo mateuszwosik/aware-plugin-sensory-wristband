@@ -278,13 +278,7 @@ public class MiBand implements Band {
     /*==================== Sensor Data ====================*/
     @Override
     public void setSensorDataNotifyListener(final NotifyListener listener) {
-        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, new NotifyListener() {
-
-            @Override
-            public void onNotify(byte[] data) {
-                listener.onNotify(data);
-            }
-        });
+        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, listener);
     }
 
     @Override
@@ -306,15 +300,11 @@ public class MiBand implements Band {
     /*==================== Steps ====================*/
     @Override
     public void setRealtimeStepsNotifyListener(final RealtimeStepsNotifyListener listener) {
-        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_REALTIME_STEPS, new NotifyListener() {
-
-            @Override
-            public void onNotify(byte[] data) {
-                Log.d(TAG, Arrays.toString(data));
-                if (data.length == 4) {
-                    int steps = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
-                    listener.onNotify(new StepsInfo(steps,0,0));
-                }
+        io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_REALTIME_STEPS, data -> {
+            Log.d(TAG, Arrays.toString(data));
+            if (data.length == 4) {
+                int steps = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
+                listener.onNotify(new StepsInfo(steps,0,0));
             }
         });
     }
@@ -338,14 +328,11 @@ public class MiBand implements Band {
     /*==================== Heart Rate ====================*/
     @Override
     public void setHeartRateScanListener(final HeartRateNotifyListener listener) {
-        io.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                Log.d(TAG, Arrays.toString(data));
-                if (data.length == 2 && data[0] == 6) {
-                    int heartRate = data[1] & 0xFF;
-                    listener.onNotify(heartRate);
-                }
+        io.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, data -> {
+            Log.d(TAG, Arrays.toString(data));
+            if (data.length == 2 && data[0] == 6) {
+                int heartRate = data[1] & 0xFF;
+                listener.onNotify(heartRate);
             }
         });
     }
@@ -366,6 +353,13 @@ public class MiBand implements Band {
 
     }
     /*==================== Heart Rate END ====================*/
+
+    /*==================== Button ====================*/
+    @Override
+    public void setButtonListener(final NotifyListener listener){
+
+    }
+    /*==================== Button END ====================*/
 
     /**
      * Set Led Color.

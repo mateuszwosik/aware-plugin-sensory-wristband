@@ -26,6 +26,7 @@ public class Protocol {
     public static final byte ALERT_LEVEL_MESSAGE = 0x01;//MILD
     public static final byte ALERT_LEVEL_PHONE_CALL = 0x02;//HIGH
     public static final byte ALERT_LEVEL_VIBRATE_ONLY = 0x03;
+    public static final int ALERT_LEVEL_CUSTOM = 0xfa; //+ byte (uint8) with special icons (form 0x00 to 0x25)
 
     // ==================== ALERT CATEGORIES =====================
     /**
@@ -87,7 +88,7 @@ public class Protocol {
      *  3. Send the encrypted random authentication key to the band. ({AUTH_ENCRYPTED_NUMBER, AUTH_BYTE, encrypted authentication key})
      */
 
-    public static final byte[] AUTH_SECRET_KEY = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45};
+    public static final byte[] AUTH_SECRET_KEY = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45}; //{0x01, 0x08, 0x48, 0x49, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69}
     public static final byte[] AUTH_SECRET_NUMBER = {0x01};
     public static final byte[] AUTH_BYTE = {0x8};
     public static final byte[] REQUEST_AUTH_RANDOM_NUMBER = {0x02};
