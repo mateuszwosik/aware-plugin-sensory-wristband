@@ -3,6 +3,7 @@
 # Settings
 Parameters adjusted on the dashboard and client:
  - <b>status_plugin_sensory_wristband:</b> (boolean) activate/deactivate plugin
+ - <b>frequency_heart_rate:</b> (int) frequency of heart rate measurements
 
 # Broadcasts
   - <b>ACTION_AWARE_BAND_CONNECTED:</b> send when connection and pairing to the band was successful
