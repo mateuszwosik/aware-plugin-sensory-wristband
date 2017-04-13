@@ -37,15 +37,12 @@ public class ContextCard implements IContextCard {
     private static String info = "";
 
     //Constructor used to instantiate this card
-    public ContextCard() {
-
-    }
+    public ContextCard() {}
 
     @Override
     public View getContextCard(Context context) {
-        //Load card information to memory
-        LayoutInflater sInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View card = sInflater.inflate(R.layout.card, null);
+        //Load card layout
+        View card = LayoutInflater.from(context).inflate(R.layout.card, null);
 
         //Initialize UI elements from the card
         heartRateTextView = (TextView) card.findViewById(R.id.heartRateTextView);

@@ -28,11 +28,6 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
         addPreferencesFromResource(R.xml.preferences);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.registerOnSharedPreferenceChangeListener(this);
-        syncSettings();
-    }
-
-    private void syncSettings(){
-        heartRateFrequencyList = (ListPreference)findPreference(FREQUENCY_HEART_RATE);
     }
 
     @Override
@@ -44,23 +39,30 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
             Aware.setSetting( this, STATUS_PLUGIN_SENSORY_WRISTBAND, true ); //by default, the setting is true on install
         }
         status.setChecked(Aware.getSetting(getApplicationContext(), STATUS_PLUGIN_SENSORY_WRISTBAND).equals("true"));
+
+        heartRateFrequencyList = (ListPreference)findPreference(FREQUENCY_HEART_RATE);
+        if (Aware.getSetting(this, FREQUENCY_HEART_RATE).length() == 0)
+            Aware.setSetting(this, FREQUENCY_HEART_RATE, "30000");
+        heartRateFrequencyList.setSummary(Aware.getSetting(this, FREQUENCY_HEART_RATE));
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        Preference setting = findPreference(key);
-        if( setting.getKey().equals(STATUS_PLUGIN_SENSORY_WRISTBAND) ) {
+        Preference preference = findPreference(key);
+        if (preference.getKey().equals(STATUS_PLUGIN_SENSORY_WRISTBAND) ) {
             Aware.setSetting(this, key, sharedPreferences.getBoolean(key, false));
             status.setChecked(sharedPreferences.getBoolean(key, false));
         }
+
         if (Aware.getSetting(this, STATUS_PLUGIN_SENSORY_WRISTBAND).equals("true")) {
             Aware.startPlugin(getApplicationContext(), "com.aware.plugin.sensory_wristband");
         } else {
             Aware.stopPlugin(getApplicationContext(), "com.aware.plugin.sensory_wristband");
         }
 
-        if(setting.getKey().equals(FREQUENCY_HEART_RATE)){
-            setting.setSummary(sharedPreferences.getString(key,"30000"));
+        if (preference.getKey().equals(FREQUENCY_HEART_RATE)){
+            Aware.setSetting(getApplicationContext(), key, sharedPreferences.getString(key, "30000"));
+            preference.setSummary(Aware.getSetting(this, FREQUENCY_HEART_RATE));
             Plugin.UPDATE_HEART_RATE_PERIOD = Integer.parseInt(heartRateFrequencyList.getValue());
         }
     }

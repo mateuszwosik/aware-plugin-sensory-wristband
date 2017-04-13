@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.aware.plugin.sensory_wristband">
 
     <uses-permission android:name="com.aware.READ_CONTEXT_DATA" />
@@ -11,7 +12,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <!-- Location -->
-    <!-- In Android 6.0+ devices to locate BLE device location permissions needs to be granted -->
+    <!-- In Android M+ devices to locate BLE device location permissions needs to be granted -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
@@ -29,11 +30,16 @@
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        tools:replace="android:icon, android:label" >
 
         <service
             android:name="com.aware.plugin.sensory_wristband.Plugin"
-            android:exported="true" />
+            android:exported="true"
+            android:label="AWARE: Sensory Wristband"/>
+
+        <activity android:name=".activities.ScanActivity"
+            android:exported="true"
+            android:launchMode="singleInstance"/>
 
         <activity
             android:name="com.aware.plugin.sensory_wristband.Settings"
@@ -42,14 +48,9 @@
         <provider
             android:name="com.aware.plugin.sensory_wristband.Provider"
             android:authorities="${applicationId}.provider.sensory_wristband"
-            android:exported="true" />
-
-        <activity android:name=".activities.ScanActivity"
             android:exported="true"
-            android:launchMode="singleTop"/>
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA"/>
 
     </application>
-
-    <!--android:readPermission="com.aware.READ_CONTEXT_DATA"
-    android:writePermission="com.aware.WRITE_CONTEXT_DATA"-->
 </manifest>

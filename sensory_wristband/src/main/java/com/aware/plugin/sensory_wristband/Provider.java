@@ -4,7 +4,6 @@ import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -19,7 +18,6 @@ import android.util.Log;
 import com.aware.Aware;
 import com.aware.utils.DatabaseHelper;
 
-import java.io.File;
 import java.util.HashMap;
 
 public class Provider extends ContentProvider {
@@ -56,9 +54,9 @@ public class Provider extends ContentProvider {
      * Heart Rate Table definition
      */
     public static final class TableHeartRate_Data implements AWAREColumns {
-        public static final Uri CONTENT_URI = Uri.withAppendedPath(Provider.CONTENT_URI, DB_TBL_HEART_RATE);
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband";
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband";
+        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + DB_TBL_HEART_RATE);
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband.provider.table_heart_rate";
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband.provider.table_heart_rate";
 
         public static final String HEART_RATE = "heart_rate";
     }
@@ -76,9 +74,9 @@ public class Provider extends ContentProvider {
      * Steps Table definition
      */
     public static final class TableSteps_Data implements AWAREColumns {
-        public static final Uri CONTENT_URI = Uri.withAppendedPath(Provider.CONTENT_URI, DB_TBL_STEPS);
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband";
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband";
+        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + DB_TBL_STEPS);
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband.provider.table_steps";
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.sensory_wristband.provider.table_steps";
 
         public static final String STEPS = "steps";
         public static final String DISTANCE = "distance";
@@ -106,28 +104,22 @@ public class Provider extends ContentProvider {
 
     //Helper variables for ContentProvider - don't change me
     private static UriMatcher sUriMatcher;
-    private static DatabaseHelper databaseHelper;
+    private static DatabaseHelper dbHelper;
     private static SQLiteDatabase database;
+    private void initialiseDatabase() {
+        if (dbHelper == null) {
+            dbHelper = new DatabaseHelper(getContext(), DATABASE_NAME, null, DATABASE_VERSION, DATABASE_TABLES, TABLES_FIELDS);
+        }
+        if (database == null) {
+            database = dbHelper.getWritableDatabase();
+        }
+    }
 
     //For each table, create a hashMap needed for database queries
     private static HashMap<String, String> tableHeartRateHashMap;
     private static HashMap<String, String> tableStepsHashMap;
 
     private static final String TAG = "DB: Sensory Wristband";
-
-    /**
-     * Initialise database: create the database file, update if needed, etc. DO NOT CHANGE ME
-     * @return true if database is initialised | false if database is not initialised
-     */
-    private boolean initializeDB() {
-        if (databaseHelper == null) {
-            databaseHelper = new DatabaseHelper(getContext(), DATABASE_NAME, null, DATABASE_VERSION, DATABASE_TABLES, TABLES_FIELDS);
-        }
-        if (database == null || !database.isOpen()) {
-            database = databaseHelper.getWritableDatabase();
-        }
-        return (database != null && databaseHelper != null);
-    }
 
     @Override
     public boolean onCreate() {
@@ -158,14 +150,68 @@ public class Provider extends ContentProvider {
         return true;
     }
 
+    @Override
+    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
+        initialiseDatabase();
+        database.beginTransaction();
+        int count;
+        switch (sUriMatcher.match(uri)) {
+            case TABLE_HEART_RATE_DIR:
+                count = database.delete(DATABASE_TABLES[0], selection, selectionArgs);
+                break;
+            case TABLE_STEPS_DIR:
+                count = database.delete(DATABASE_TABLES[1], selection, selectionArgs);
+                break;
+            default:
+                database.endTransaction();
+                throw new IllegalArgumentException("Unknown URI " + uri);
+        }
+        database.setTransactionSuccessful();
+        database.endTransaction();
+        getContext().getContentResolver().notifyChange(uri, null);
+        return count;
+    }
+
+    @Nullable
+    @Override
+    public Uri insert(@NonNull Uri uri, ContentValues initialValues) {
+        initialiseDatabase();
+        ContentValues values = (initialValues != null) ? new ContentValues(initialValues) : new ContentValues();
+        database.beginTransaction();
+        long _id;
+        switch (sUriMatcher.match(uri)) {
+            case TABLE_HEART_RATE_DIR:
+                _id = database.insert(DATABASE_TABLES[0], TableHeartRate_Data.DEVICE_ID, values);
+                database.setTransactionSuccessful();
+                database.endTransaction();
+                if (_id > 0) {
+                    Uri dataUri = ContentUris.withAppendedId(TableHeartRate_Data.CONTENT_URI, _id);
+                    getContext().getContentResolver().notifyChange(dataUri, null);
+                    return dataUri;
+                }
+                database.endTransaction();
+                throw new SQLException("Failed to insert row into " + uri);
+            case TABLE_STEPS_DIR:
+                _id = database.insert(DATABASE_TABLES[1], TableSteps_Data.DEVICE_ID, values);
+                database.setTransactionSuccessful();
+                database.endTransaction();
+                if (_id > 0) {
+                    Uri dataUri = ContentUris.withAppendedId(TableSteps_Data.CONTENT_URI, _id);
+                    getContext().getContentResolver().notifyChange(dataUri, null);
+                    return dataUri;
+                }
+                database.endTransaction();
+                throw new SQLException("Failed to insert row into " + uri);
+            default:
+                database.endTransaction();
+                throw new IllegalArgumentException("Unknown URI " + uri);
+        }
+    }
+
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        if (!initializeDB()) {
-            Log.w(TAG, "Database unavailable...");
-            return null;
-        }
-
+        initialiseDatabase();
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         switch (sUriMatcher.match(uri)) {
             case TABLE_HEART_RATE_DIR:
@@ -178,7 +224,6 @@ public class Provider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
-
         try {
             Cursor c = qb.query(database, projection, selection, selectionArgs,
                     null, null, sortOrder);
@@ -208,68 +253,10 @@ public class Provider extends ContentProvider {
         }
     }
 
-    @Nullable
-    @Override
-    public Uri insert(@NonNull Uri uri, ContentValues new_values) {
-        if (!initializeDB()) {
-            Log.w(TAG, "Database unavailable...");
-            return null;
-        }
-
-        ContentValues values = (new_values != null) ? new ContentValues(new_values) : new ContentValues();
-        long _id;
-
-        switch (sUriMatcher.match(uri)) {
-            case TABLE_HEART_RATE_DIR:
-                _id = database.insert(DATABASE_TABLES[0], TableHeartRate_Data.DEVICE_ID, values);
-                if (_id > 0) {
-                    Uri dataUri = ContentUris.withAppendedId(TableHeartRate_Data.CONTENT_URI, _id);
-                    getContext().getContentResolver().notifyChange(dataUri, null);
-                    return dataUri;
-                }
-                throw new SQLException("Failed to insert row into " + uri);
-            case TABLE_STEPS_DIR:
-                _id = database.insert(DATABASE_TABLES[1], TableSteps_Data.DEVICE_ID, values);
-                if (_id > 0) {
-                    Uri dataUri = ContentUris.withAppendedId(TableSteps_Data.CONTENT_URI, _id);
-                    getContext().getContentResolver().notifyChange(dataUri, null);
-                    return dataUri;
-                }
-                throw new SQLException("Failed to insert row into " + uri);
-            default:
-                throw new IllegalArgumentException("Unknown URI " + uri);
-        }
-    }
-
-    @Override
-    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
-        if (!initializeDB()) {
-            Log.w(TAG, "Database unavailable...");
-            return 0;
-        }
-
-        int count;
-        switch (sUriMatcher.match(uri)) {
-            case TABLE_HEART_RATE_DIR:
-                count = database.delete(DATABASE_TABLES[0], selection, selectionArgs);
-                break;
-            case TABLE_STEPS_DIR:
-                count = database.delete(DATABASE_TABLES[1], selection, selectionArgs);
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown URI " + uri);
-        }
-        getContext().getContentResolver().notifyChange(uri, null);
-        return count;
-    }
-
     @Override
     public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        if (!initializeDB()) {
-            Log.w(TAG, "Database unavailable...");
-            return 0;
-        }
-
+        initialiseDatabase();
+        database.beginTransaction();
         int count;
         switch (sUriMatcher.match(uri)) {
             case TABLE_HEART_RATE_DIR:
@@ -279,9 +266,11 @@ public class Provider extends ContentProvider {
                 count = database.update(DATABASE_TABLES[1], values, selection, selectionArgs);
                 break;
             default:
-                database.close();
+                database.endTransaction();
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
+        database.setTransactionSuccessful();
+        database.endTransaction();
         getContext().getContentResolver().notifyChange(uri, null);
         return count;
     }

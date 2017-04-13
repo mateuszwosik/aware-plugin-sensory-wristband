@@ -9,11 +9,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -26,7 +23,6 @@ import com.aware.plugin.sensory_wristband.device.DeviceSelector;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.Protocol;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
 import com.aware.plugin.sensory_wristband.utils.Device;
-import com.aware.ui.PermissionsHandler;
 import com.aware.utils.Aware_Plugin;
 
 public class Plugin extends Aware_Plugin {
@@ -157,43 +153,37 @@ public class Plugin extends Aware_Plugin {
         contextProducer = () -> {};
         CONTEXT_PRODUCER = contextProducer;
 
-        //Add permissions you need (Support for Android >= M)
+        //Add permissions you need (Support for Android M+)
         REQUIRED_PERMISSIONS.add(Manifest.permission.BLUETOOTH);
         REQUIRED_PERMISSIONS.add(Manifest.permission.BLUETOOTH_ADMIN);
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_FINE_LOCATION);
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         REQUIRED_PERMISSIONS.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         REQUIRED_PERMISSIONS.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-        REQUIRED_PERMISSIONS.add("com.aware.READ_CONTEXT_DATA");
-        REQUIRED_PERMISSIONS.add("com.aware.WRITE_CONTEXT_DATA");
 
         //To sync data to the server, you'll need to set this variables from your ContentProvider
         DATABASE_TABLES = Provider.DATABASE_TABLES;
         TABLES_FIELDS = Provider.TABLES_FIELDS;
         CONTEXT_URIS = new Uri[]{ Provider.TableHeartRate_Data.CONTENT_URI, Provider.TableSteps_Data.CONTENT_URI};
-
-        //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
-        Aware.startPlugin(this, "com.aware.plugin.sensory_wristband");
     }
 
     //This function gets called every 5 minutes by AWARE to make sure this plugin is still running.
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
 
-        boolean permissions_ok = true;
-        for (String p : REQUIRED_PERMISSIONS) {
-            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
-                permissions_ok = false;
-                break;
-            }
-        }
-
-        if (permissions_ok) {
+        if (PERMISSIONS_OK) {
             //Check if the user has toggled the debug messages
             DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
 
             //Initialize our plugin's settings
             Aware.setSetting(this, Settings.STATUS_PLUGIN_SENSORY_WRISTBAND, true);
+
+            if (Aware.getSetting(getApplicationContext(), Settings.FREQUENCY_HEART_RATE).length() == 0)
+                Aware.setSetting(getApplicationContext(), Settings.FREQUENCY_HEART_RATE, "30000");
+
+            //Initialise AWARE instance in plugin
+            Aware.startAWARE(this);
 
             if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()){
                 //Ask AWARE for Bluetooth
@@ -205,14 +195,9 @@ public class Plugin extends Aware_Plugin {
                 }
             }
 
-        } else {
-            Intent permissions = new Intent(this, PermissionsHandler.class);
-            permissions.putExtra(PermissionsHandler.EXTRA_REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS);
-            permissions.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(permissions);
         }
 
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     @Override
@@ -230,8 +215,8 @@ public class Plugin extends Aware_Plugin {
         //Deactivate plugin
         Aware.setSetting(this, Settings.STATUS_PLUGIN_SENSORY_WRISTBAND, false);
 
-        //Stop AWARE
-        Aware.stopAWARE();
+        //Stop AWARE instance in plugin
+        Aware.stopAWARE(this);
     }
 
     private void startScanActivity(){
@@ -478,14 +463,14 @@ public class Plugin extends Aware_Plugin {
 
     /**
      * Saves heart rate to database.
+     *  - Heart Rate
      * @param heartRate - heart rate to save
      */
     private void saveHeartRateToDB(final int heartRate){
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)); //getDeviceID()
         contentValues.put(Provider.TableHeartRate_Data.TIMESTAMP, System.currentTimeMillis());
+        contentValues.put(Provider.TableHeartRate_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
         contentValues.put(Provider.TableHeartRate_Data.HEART_RATE, heartRate);
-        //Inserts data to the ContentProvider
         getContentResolver().insert(Provider.TableHeartRate_Data.CONTENT_URI, contentValues);
     }
 
@@ -498,25 +483,12 @@ public class Plugin extends Aware_Plugin {
      */
     private void saveStepsInfoToDB(final StepsInfo stepsInfo) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID)); //getDeviceID()
         contentValues.put(Provider.TableSteps_Data.TIMESTAMP, System.currentTimeMillis());
+        contentValues.put(Provider.TableSteps_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
         contentValues.put(Provider.TableSteps_Data.STEPS, stepsInfo.getSteps());
         contentValues.put(Provider.TableSteps_Data.DISTANCE, stepsInfo.getDistance());
         contentValues.put(Provider.TableSteps_Data.CALORIES, stepsInfo.getCalories());
-        //Inserts data to the ContentProvider
         getContentResolver().insert(Provider.TableSteps_Data.CONTENT_URI, contentValues);
-    }
-
-    public String getDeviceID(){
-        String id = "";
-        String[] columns = {"device_id"};
-        Uri AWARE_DEVICE_URI = Uri.parse("content://com.aware.provider.aware/aware_device");
-        Cursor cursor = getContentResolver().query(AWARE_DEVICE_URI,columns,null,null,null);
-        if (cursor != null && cursor.moveToFirst()){
-            id = cursor.getString(cursor.getColumnIndex("device_id"));
-            cursor.close();
-        }
-        return id;
     }
 
 }
