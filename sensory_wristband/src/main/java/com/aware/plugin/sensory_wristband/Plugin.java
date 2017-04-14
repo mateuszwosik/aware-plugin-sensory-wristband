@@ -38,9 +38,7 @@ public class Plugin extends Aware_Plugin {
     public static final String EXTRA_BAND_HEART_RATE_DATA = "extra_band_heart_rate_data";
     public static final String EXTRA_BAND_STEPS_DATA = "extra_band_steps_data";
 
-    private static int UPDATE_BASIC_INFO_PERIOD = 10000;//10s
-    public static int UPDATE_HEART_RATE_PERIOD = 30000;//30s
-    private static int SENSORS_ACTIVATION_DELAY = 5000;//3s
+    private static int SENSORS_ACTIVATION_DELAY = 5000;//5s
 
     private static final int HEART_RATE_MAX_VALUE = 221;
     private static final int HEART_RATE_MIN_VALUE = 39;
@@ -126,13 +124,13 @@ public class Plugin extends Aware_Plugin {
         basicInfoHandler = new Handler();
         basicInfoPeriodicUpdater = () -> {
             refreshRSSI();
-            basicInfoHandler.postDelayed(basicInfoPeriodicUpdater,UPDATE_BASIC_INFO_PERIOD);
+            basicInfoHandler.postDelayed(basicInfoPeriodicUpdater,Integer.parseInt(Aware.getSetting(this, Settings.FREQUENCY_BASIC_DATA)));
         };
 
         heartRateHandler = new Handler();
         heartRatePeriodicUpdater = () -> {
             startHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
-            heartRateHandler.postDelayed(heartRatePeriodicUpdater,UPDATE_HEART_RATE_PERIOD);
+            heartRateHandler.postDelayed(heartRatePeriodicUpdater,Integer.parseInt(Aware.getSetting(this, Settings.FREQUENCY_HEART_RATE)));
         };
 
         sensorsActivationHandler = new Handler();
@@ -193,6 +191,9 @@ public class Plugin extends Aware_Plugin {
 
             if (Aware.getSetting(getApplicationContext(), Settings.FREQUENCY_HEART_RATE).length() == 0)
                 Aware.setSetting(getApplicationContext(), Settings.FREQUENCY_HEART_RATE, "30000");
+
+            if (Aware.getSetting(getApplicationContext(), Settings.FREQUENCY_BASIC_DATA).length() == 0)
+                Aware.setSetting(getApplicationContext(), Settings.FREQUENCY_BASIC_DATA, "10000");
 
             //Initialise AWARE instance in plugin
             Aware.startAWARE(this);

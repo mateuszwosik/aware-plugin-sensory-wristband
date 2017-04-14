@@ -17,4 +17,12 @@
         android:persistent="true"
         android:title="Scanning heart rate frequency" />
 
+    <ListPreference
+        android:defaultValue="10000"
+        android:entries="@array/basic_frequency_readable"
+        android:entryValues="@array/basic_frequency_values"
+        android:key="frequency_basic_data"
+        android:persistent="true"
+        android:title="Scanning basic information frequency" />
+
 </PreferenceScreen>

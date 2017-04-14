@@ -18,4 +18,23 @@
         <item>30 minutes</item>
         <item>1 hour</item>
     </string-array>
+
+    <string-array name="basic_frequency_values">
+        <item>5000</item>
+        <item>10000</item>
+        <item>30000</item>
+        <item>60000</item>
+        <item>300000</item>
+        <item>600000</item>
+        <item>900000</item>
+    </string-array>
+    <string-array name="basic_frequency_readable">
+        <item>5 seconds</item>
+        <item>10 seconds</item>
+        <item>30 seconds</item>
+        <item>1 minute</item>
+        <item>5 minutes</item>
+        <item>10 minutes</item>
+        <item>15 minutes</item>
+    </string-array>
 </resources>
