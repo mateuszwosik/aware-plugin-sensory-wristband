@@ -100,21 +100,23 @@ public class ContextCard implements IContextCard {
      * @param batteryInfo - battery information
      */
     private void updateBatteryInfo(final BatteryInfo batteryInfo){
-        batteryLevel = batteryInfo.getLevel();
-        if(batteryLevel > 80){
-            batteryResId = R.drawable.battery_level_4;
-        } else if(batteryLevel > 60){
-            batteryResId = R.drawable.battery_level_3;
-        } else if(batteryLevel > 40){
-            batteryResId = R.drawable.battery_level_2;
-        } else if(batteryLevel > 20){
-            batteryResId = R.drawable.battery_level_1;
-        } else {
-            batteryResId = R.drawable.battery_level_0;
+        if (batteryInfo != null) {
+            batteryLevel = batteryInfo.getLevel();
+            if (batteryLevel > 80) {
+                batteryResId = R.drawable.battery_level_4;
+            } else if (batteryLevel > 60) {
+                batteryResId = R.drawable.battery_level_3;
+            } else if (batteryLevel > 40) {
+                batteryResId = R.drawable.battery_level_2;
+            } else if (batteryLevel > 20) {
+                batteryResId = R.drawable.battery_level_1;
+            } else {
+                batteryResId = R.drawable.battery_level_0;
+            }
+            batteryImageView.setImageResource(batteryResId);
+            final String level = batteryLevel + "%";
+            batteryLevelTextView.setText(level);
         }
-        batteryImageView.setImageResource(batteryResId);
-        final String level = batteryLevel + "%";
-        batteryLevelTextView.setText(level);
     }
 
     /**
@@ -122,12 +124,14 @@ public class ContextCard implements IContextCard {
      * @param stepsInfo - steps information (steps,distance,calories)
      */
     private void updateStepNumber(final StepsInfo stepsInfo){
-        ContextCard.steps = String.valueOf(stepsInfo.getSteps());
-        ContextCard.distance = String.valueOf(stepsInfo.getDistance()) + " m";
-        ContextCard.calories = String.valueOf(stepsInfo.getCalories()) + " kcal";
-        stepsTextView.setText(ContextCard.steps);
-        distanceTextView.setText(ContextCard.distance);
-        caloriesTextView.setText(ContextCard.calories);
+        if (stepsInfo != null) {
+            ContextCard.steps = String.valueOf(stepsInfo.getSteps());
+            ContextCard.distance = String.valueOf(stepsInfo.getDistance()) + " m";
+            ContextCard.calories = String.valueOf(stepsInfo.getCalories()) + " kcal";
+            stepsTextView.setText(ContextCard.steps);
+            distanceTextView.setText(ContextCard.distance);
+            caloriesTextView.setText(ContextCard.calories);
+        }
     }
 
     /**
