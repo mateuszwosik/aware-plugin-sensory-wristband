@@ -4,6 +4,8 @@ import com.aware.plugin.sensory_wristband.device.StepsInfo;
 
 public class StepsInfoMiBand2 implements StepsInfo {
 
+    private static final long serialVersionUID = 1L;
+
     private int steps;
     private int distance;
     private int calories;

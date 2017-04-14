@@ -4,6 +4,8 @@ import com.aware.plugin.sensory_wristband.device.BatteryInfo;
 
 public class BatteryInfoMiBand2 implements BatteryInfo {
 
+    private static final long serialVersionUID = 1L;
+
     private int level;
     private BatteryState state;
 

@@ -119,8 +119,6 @@ public class Provider extends ContentProvider {
     private static HashMap<String, String> tableHeartRateHashMap;
     private static HashMap<String, String> tableStepsHashMap;
 
-    private static final String TAG = "DB: Sensory Wristband";
-
     @Override
     public boolean onCreate() {
         //This is a hack to allow providers to be reusable in any application/plugin by making the authority dynamic using the package name of the parent app
