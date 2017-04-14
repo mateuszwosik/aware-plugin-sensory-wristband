@@ -11,6 +11,7 @@ import com.aware.plugin.sensory_wristband.device.ActionCallback;
 import com.aware.plugin.sensory_wristband.device.Band;
 import com.aware.plugin.sensory_wristband.device.BatteryInfo;
 import com.aware.plugin.sensory_wristband.device.BatteryNotifyListener;
+import com.aware.plugin.sensory_wristband.device.HeartRateMode;
 import com.aware.plugin.sensory_wristband.device.HeartRateNotifyListener;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.BatteryInfoMiBand2;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.Profile;
@@ -202,6 +203,20 @@ public class MiBand2 implements Band {
     @Override
     public void stopHeartRateScan(byte heartRateMode){
         io.writeCharacteristic(Profile.UUID_SERVICE_HEART_RATE, Profile.UUID_CHAR_HEART_RATE_CONTROL_POINT, new byte[]{Protocol.HEART_RATE_SCAN,heartRateMode,Protocol.DISABLE},null);
+    }
+
+    @Override
+    public byte getHeartRateScanMode(HeartRateMode mode){
+        switch (mode){
+            case HEART_RATE_MANUAL_MODE:
+                return Protocol.HEART_RATE_MANUAL_MODE;
+            case HEART_RATE_CONTINUOUS_MODE:
+                return Protocol.HEART_RATE_CONTINUOUS_MODE;
+            case HEART_RATE_SLEEP_MODE:
+                return Protocol.HEART_RATE_SLEEP_MODE;
+            default:
+                return Protocol.HEART_RATE_MANUAL_MODE;
+        }
     }
 
     @Override

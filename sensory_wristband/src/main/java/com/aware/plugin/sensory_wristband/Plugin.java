@@ -21,7 +21,7 @@ import com.aware.plugin.sensory_wristband.device.ActionCallback;
 import com.aware.plugin.sensory_wristband.device.Band;
 import com.aware.plugin.sensory_wristband.device.BatteryInfo;
 import com.aware.plugin.sensory_wristband.device.DeviceSelector;
-import com.aware.plugin.sensory_wristband.device.MiBand2.model.Protocol;
+import com.aware.plugin.sensory_wristband.device.HeartRateMode;
 import com.aware.plugin.sensory_wristband.device.StepsInfo;
 import com.aware.plugin.sensory_wristband.utils.Device;
 import com.aware.plugin.sensory_wristband.utils.State;
@@ -55,6 +55,8 @@ public class Plugin extends Aware_Plugin {
 
     public static State STATE = State.DISCONNECTED;
     public static ContextProducer contextProducer;
+
+    private static byte heartRateMode;
 
     private static int rssi = 0;
     private static BatteryInfo batteryInfo = null;
@@ -124,13 +126,20 @@ public class Plugin extends Aware_Plugin {
         basicInfoHandler = new Handler();
         basicInfoPeriodicUpdater = () -> {
             refreshRSSI();
-            basicInfoHandler.postDelayed(basicInfoPeriodicUpdater,Integer.parseInt(Aware.getSetting(this, Settings.FREQUENCY_BASIC_DATA)));
+            basicInfoHandler.postDelayed(basicInfoPeriodicUpdater, Integer.parseInt(Aware.getSetting(this, Settings.FREQUENCY_BASIC_DATA)));
         };
 
         heartRateHandler = new Handler();
         heartRatePeriodicUpdater = () -> {
-            startHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
-            heartRateHandler.postDelayed(heartRatePeriodicUpdater,Integer.parseInt(Aware.getSetting(this, Settings.FREQUENCY_HEART_RATE)));
+            int frequency = Integer.parseInt(Aware.getSetting(this, Settings.FREQUENCY_HEART_RATE));
+            if (frequency == 0) {
+                heartRateMode = band.getHeartRateScanMode(HeartRateMode.HEART_RATE_CONTINUOUS_MODE);
+                frequency = 10000;
+            } else {
+                heartRateMode = band.getHeartRateScanMode(HeartRateMode.HEART_RATE_MANUAL_MODE);
+            }
+            startHeartRateMeasurement(heartRateMode);
+            heartRateHandler.postDelayed(heartRatePeriodicUpdater, frequency);
         };
 
         sensorsActivationHandler = new Handler();
@@ -272,7 +281,7 @@ public class Plugin extends Aware_Plugin {
         }
         basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
         heartRateHandler.removeCallbacks(heartRatePeriodicUpdater);
-        stopHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
+        stopHeartRateMeasurement(heartRateMode);
         band.disconnect();
         band = null;
         STATE = State.DISCONNECTED;

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="hr_frequency_values">
+        <item>0</item>
         <item>30000</item>
         <item>60000</item>
         <item>300000</item>
@@ -10,6 +11,7 @@
         <item>3600000</item>
     </string-array>
     <string-array name="hr_frequency_readable">
+        <item>Continuous</item>
         <item>30 seconds</item>
         <item>1 minute</item>
         <item>5 minutes</item>

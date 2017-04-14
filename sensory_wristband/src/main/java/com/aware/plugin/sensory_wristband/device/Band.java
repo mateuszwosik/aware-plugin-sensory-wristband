@@ -106,6 +106,13 @@ public interface Band {
     void stopHeartRateScan(byte heartRateMode);
 
     /**
+     * Get protocol for heart rate scan mode.
+     * @param mode - mode of heart rate scan
+     * @return protocol for selected mode
+     */
+    byte getHeartRateScanMode(HeartRateMode mode);
+
+    /**
      * Set/Enable Button notifications when it will be touched.
      * @param listener - listener that will be notify when button will be touched
      */
