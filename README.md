@@ -7,23 +7,18 @@ Parameters adjusted on the dashboard and client:
 
 # Broadcasts
   - <b>ACTION_AWARE_BAND_CONNECTED:</b> send when connection and pairing to the band was successful
-    - <b>EXTRA_DATA:</b> name of connected band
+    - <b>EXTRA_BAND_NAME_DATA:</b> name of connected band
   - <b>ACTION_AWARE_BAND_DISCONNECTED:</b> send when band was disconnected
-  - <b>ACTION_AWARE_BAND_ENABLE_NOTIFICATION:</b> send when plugin enable notifications send from the band
-  - <b>ACTION_AWARE_BAND_DISABLE_NOTIFICATION:</b> send when plugin disable notifications send from the band
-  - <b>ACTION_AWARE_BAND_RSSI:</b> send when signal strength of the band was updated
-    - <b>EXTRA_DATA:</b> (int) signal strength
-  - <b>ACTION_AWARE_BAND_BATTERY:</b> send when was change in battery information received from the band
-    - <b>EXTRA_DATA:</b> (BatteryInfo) battery information (now only battery level)
-  - <b>ACTION_AWARE_BAND_HEART_RATE:</b> send when heart rate was measured
-    - <b>EXTRA_DATA:</b> (int) heart rate (when heart rate is equal to 0 it means that was not correctly measured) 
-  - <b>ACTION_AWARE_BAND_STEPS:</b> send when received notification from the band with steps informations
-    - <b>EXTRA_DATA:</b> (StepsInfo) steps information
+  - <b>ACTION_AWARE_BAND_NEW_DATA:</b> send when new data was obtained
+    - <b>EXTRA_BAND_RSSI_DATA:</b> (int) signal strength
+    - <b>EXTRA_BAND_BATTERY_DATA:</b> (BatteryInfo) battery information
+    - <b>EXTRA_BAND_HEART_RATE_DATA:</b> (int) heart rate 
+    - <b>EXTRA_BAND_STEPS_DATA:</b> (StepsInfo) steps information
 
 # Providers
 
 ## Heart Rate Table
-> Send after every heart rate measurement
+> Send after every correct heart rate measurement
 
 Field | Type | Description
 ----- | ---- | -----------
