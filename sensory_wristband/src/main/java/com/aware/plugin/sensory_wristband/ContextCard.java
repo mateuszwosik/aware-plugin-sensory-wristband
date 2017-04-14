@@ -9,8 +9,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.aware.plugin.sensory_wristband.device.MiBand2.model.BatteryInfoMiBand2;
-import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
+import com.aware.plugin.sensory_wristband.device.BatteryInfo;
+import com.aware.plugin.sensory_wristband.device.StepsInfo;
 import com.aware.utils.IContextCard;
 
 
@@ -67,12 +67,9 @@ public class ContextCard implements IContextCard {
         heartRateTextView.setText(heartRate);
 
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_RSSI);
-        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_BATTERY);
-        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_HEART_RATE);
-        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_STEPS);
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_CONNECTED);
         intentFilter.addAction(Plugin.ACTION_AWARE_BAND_DISCONNECTED);
+        intentFilter.addAction(Plugin.ACTION_AWARE_BAND_NEW_DATA);
         context.registerReceiver(dataBroadcastReceiver,intentFilter);
 
         //Return the card to AWARE/apps
@@ -102,8 +99,7 @@ public class ContextCard implements IContextCard {
      * Update battery information.
      * @param batteryInfo - battery information
      */
-    private void updateBatteryInfo(final BatteryInfoMiBand2 batteryInfo){
-        //cycles:4,level:44,status:unknown,last:2015-04-15 03:37:55
+    private void updateBatteryInfo(final BatteryInfo batteryInfo){
         batteryLevel = batteryInfo.getLevel();
         if(batteryLevel > 80){
             batteryResId = R.drawable.battery_level_4;
@@ -163,13 +159,22 @@ public class ContextCard implements IContextCard {
      */
     private void init() {
         setBandName("");
+
         updateRSSI(0);
+
         batteryResId = R.drawable.battery_level_0;
         batteryImageView.setImageResource(batteryResId);
         batteryLevel = 0;
         final String level = batteryLevel + "%";
         batteryLevelTextView.setText(level);
-        updateStepNumber(new StepsInfo(0,0,0));
+
+        steps = "0";
+        distance = "0 m";
+        calories = "0 kcal";
+        stepsTextView.setText(steps);
+        distanceTextView.setText(distance);
+        caloriesTextView.setText(calories);
+
         heartRate = "0 bpm";
         heartRateTextView.setText(heartRate);
         info = "";
@@ -181,23 +186,17 @@ public class ContextCard implements IContextCard {
         @Override
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()){
-                case Plugin.ACTION_AWARE_BAND_RSSI:
-                    updateRSSI(intent.getIntExtra(Plugin.EXTRA_DATA,0));
-                    break;
-                case Plugin.ACTION_AWARE_BAND_BATTERY:
-                    updateBatteryInfo((BatteryInfoMiBand2)intent.getSerializableExtra(Plugin.EXTRA_DATA));
-                    break;
-                case Plugin.ACTION_AWARE_BAND_STEPS:
-                    updateStepNumber((StepsInfo)intent.getSerializableExtra(Plugin.EXTRA_DATA));
-                    break;
-                case Plugin.ACTION_AWARE_BAND_HEART_RATE:
-                    updateHeartRate(intent.getIntExtra(Plugin.EXTRA_DATA,0));
-                    break;
                 case Plugin.ACTION_AWARE_BAND_CONNECTED:
-                    setBandName(intent.getStringExtra(Plugin.EXTRA_DATA));
+                    setBandName(intent.getStringExtra(Plugin.EXTRA_BAND_NAME_DATA));
                     break;
                 case Plugin.ACTION_AWARE_BAND_DISCONNECTED:
                     init();
+                    break;
+                case Plugin.ACTION_AWARE_BAND_NEW_DATA:
+                    updateRSSI(intent.getIntExtra(Plugin.EXTRA_BAND_RSSI_DATA,0));
+                    updateBatteryInfo((BatteryInfo)intent.getSerializableExtra(Plugin.EXTRA_BAND_BATTERY_DATA));
+                    updateHeartRate(intent.getIntExtra(Plugin.EXTRA_BAND_HEART_RATE_DATA,0));
+                    updateStepNumber((StepsInfo) intent.getSerializableExtra(Plugin.EXTRA_BAND_STEPS_DATA));
                     break;
             }
         }

@@ -1,23 +1,19 @@
 package com.aware.plugin.sensory_wristband.device.MiBand2.model;
 
-import android.util.Log;
-
 import com.aware.plugin.sensory_wristband.device.BatteryInfo;
 
 public class BatteryInfoMiBand2 implements BatteryInfo {
 
-    private static final int BATTERY_NORMAL = 0;
-    private static final int BATTERY_CHARGING = 1;
-
     private int level;
-    private int state;
+    private BatteryState state;
 
-    private BatteryInfoMiBand2() {
+    public BatteryInfoMiBand2() {
 
     }
 
-    public BatteryInfoMiBand2(int level) {
+    public BatteryInfoMiBand2(int level, BatteryState state) {
         this.level = level;
+        this.state = state;
     }
 
     @Override
@@ -26,8 +22,13 @@ public class BatteryInfoMiBand2 implements BatteryInfo {
     }
 
     @Override
+    public BatteryState getBatteryState(){
+        return state;
+    }
+
+    @Override
     public String toString() {
-        return "BatteryInfoMiBand2[level="+getLevel()+"%]";
+        return "BatteryInfoMiBand2[level="+getLevel()+"%; state="+state+"]";
     }
 
     /**
@@ -52,7 +53,7 @@ public class BatteryInfoMiBand2 implements BatteryInfo {
         }
         BatteryInfoMiBand2 batteryInfoMiBand2 = new BatteryInfoMiBand2();
         batteryInfoMiBand2.level = data[1];
-        batteryInfoMiBand2.state = data[2];
+        batteryInfoMiBand2.state = data[2] == 0 ? BatteryState.NORMAL : BatteryState.CHARGING;
         return batteryInfoMiBand2;
     }
 

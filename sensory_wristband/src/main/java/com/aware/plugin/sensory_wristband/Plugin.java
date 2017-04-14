@@ -19,30 +19,24 @@ import com.aware.Aware_Preferences;
 import com.aware.plugin.sensory_wristband.activities.ScanActivity;
 import com.aware.plugin.sensory_wristband.device.ActionCallback;
 import com.aware.plugin.sensory_wristband.device.Band;
+import com.aware.plugin.sensory_wristband.device.BatteryInfo;
 import com.aware.plugin.sensory_wristband.device.DeviceSelector;
 import com.aware.plugin.sensory_wristband.device.MiBand2.model.Protocol;
-import com.aware.plugin.sensory_wristband.device.MiBand2.model.StepsInfo;
+import com.aware.plugin.sensory_wristband.device.StepsInfo;
 import com.aware.plugin.sensory_wristband.utils.Device;
+import com.aware.plugin.sensory_wristband.utils.State;
 import com.aware.utils.Aware_Plugin;
 
 public class Plugin extends Aware_Plugin {
 
     public static final String ACTION_AWARE_BAND_CONNECTED = "ACTION_AWARE_BAND_CONNECTED";
+    public static final String EXTRA_BAND_NAME_DATA = "extra_band_name_data";
     public static final String ACTION_AWARE_BAND_DISCONNECTED = "ACTION_AWARE_BAND_DISCONNECTED";
-    public static final String ACTION_AWARE_BAND_ENABLE_NOTIFICATION = "ACTION_AWARE_BAND_ENABLE_NOTIFICATION";
-    public static final String ACTION_AWARE_BAND_DISABLE_NOTIFICATION = "ACTION_AWARE_BAND_DISABLE_NOTIFICATION";
-    public static final String ACTION_AWARE_BAND_RSSI = "ACTION_AWARE_BAND_RSSI";
-    public static final String ACTION_AWARE_BAND_BATTERY = "ACTION_AWARE_BAND_BATTERY";
-    public static final String ACTION_AWARE_BAND_HEART_RATE = "ACTION_AWARE_BAND_HEART_RATE";
-    public static final String ACTION_AWARE_BAND_STEPS = "ACTION_AWARE_BAND_STEPS";
-    public static final String EXTRA_DATA = "extra_data";
-
-    /**
-     * Set 1 - need to confirm each match/pairing. Just like in the official application.
-     * Set 0 - no need for confirmation when User ID is the same as previous.
-     *         In case device does not respond will be sent to normal notification listener with value 3
-     * private static final int TYPE = 0;
-     */
+    public static final String ACTION_AWARE_BAND_NEW_DATA = "ACTION_AWARE_BAND_NEW_DATA";
+    public static final String EXTRA_BAND_RSSI_DATA = "extra_band_rssi_data";
+    public static final String EXTRA_BAND_BATTERY_DATA = "extra_band_battery_data";
+    public static final String EXTRA_BAND_HEART_RATE_DATA = "extra_band_heart_rate_data";
+    public static final String EXTRA_BAND_STEPS_DATA = "extra_band_steps_data";
 
     private static int UPDATE_BASIC_INFO_PERIOD = 10000;//10s
     public static int UPDATE_HEART_RATE_PERIOD = 30000;//30s
@@ -61,9 +55,13 @@ public class Plugin extends Aware_Plugin {
     private static Handler sensorsActivationHandler;
     private static Runnable sensorsActivationRunnable;
 
-    private static ContextProducer contextProducer;
+    public static State STATE = State.DISCONNECTED;
+    public static ContextProducer contextProducer;
 
-    private static StepsInfo stepsInfo = new StepsInfo(0,0,0);
+    private static int rssi = 0;
+    private static BatteryInfo batteryInfo = null;
+    private static int heartRate = 0;
+    private static StepsInfo stepsInfo = null;
 
 
     /**
@@ -96,16 +94,11 @@ public class Plugin extends Aware_Plugin {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            if(ACTION_AWARE_BAND_ENABLE_NOTIFICATION.equalsIgnoreCase(action)){
+            if(ACTION_AWARE_BAND_CONNECTED.equalsIgnoreCase(action)){
                 /*Enable notifications*/
                 enableHeartRateNotification();
                 enableStepNotification();
                 enableBatteryNotification();
-            } else if(ACTION_AWARE_BAND_DISABLE_NOTIFICATION.equalsIgnoreCase(action)) {
-                /*Disable notifications*/
-                disableHeartRateNotification();
-                disableStepNotification();
-                disableBatteryNotification();
             }
         }
     }
@@ -126,8 +119,7 @@ public class Plugin extends Aware_Plugin {
         registerReceiver(deviceBroadcastReceiver, deviceIntentFilter);
 
         IntentFilter notificationIntentFilter = new IntentFilter();
-        notificationIntentFilter.addAction(ACTION_AWARE_BAND_ENABLE_NOTIFICATION);
-        notificationIntentFilter.addAction(ACTION_AWARE_BAND_DISABLE_NOTIFICATION);
+        notificationIntentFilter.addAction(ACTION_AWARE_BAND_CONNECTED);
         registerReceiver(enableNotificationReceiver, notificationIntentFilter);
 
         //Get signal strength and battery info cyclically
@@ -150,7 +142,27 @@ public class Plugin extends Aware_Plugin {
         };
 
         //Any active plugin/sensor shares its overall context using broadcasts
-        contextProducer = () -> {};
+        contextProducer = () -> {
+            Intent intent;
+            switch (STATE){
+                case CONNECTED:
+                    intent = new Intent(ACTION_AWARE_BAND_CONNECTED);
+                    intent.putExtra(EXTRA_BAND_NAME_DATA, band.getDevice().getName());
+                    sendBroadcast(intent);
+                    break;
+                case DISCONNECTED:
+                    sendBroadcast(new Intent(ACTION_AWARE_BAND_DISCONNECTED));
+                    break;
+                case NEW_DATA:
+                    intent = new Intent(ACTION_AWARE_BAND_NEW_DATA);
+                    intent.putExtra(EXTRA_BAND_RSSI_DATA, rssi);
+                    intent.putExtra(EXTRA_BAND_BATTERY_DATA, batteryInfo);
+                    intent.putExtra(EXTRA_BAND_HEART_RATE_DATA, heartRate);
+                    intent.putExtra(EXTRA_BAND_STEPS_DATA, stepsInfo);
+                    sendBroadcast(intent);
+                    break;
+            }
+        };
         CONTEXT_PRODUCER = contextProducer;
 
         //Add permissions you need (Support for Android M+)
@@ -235,10 +247,8 @@ public class Plugin extends Aware_Plugin {
             @Override
             public void onSuccess(Object data) {
                 Log.d(TAG,"Connected to band");
-                //Set on disconnect listener
-                band.setDisconnectedListener((d) -> disconnect());
-                //Show band services and characteristics
-                band.showServicesAndCharacteristics();
+                //Set disconnect listener
+                band.setDisconnectedListener(d -> disconnect());
                 //Pair/Authenticate band
                 pairDevice();
             }
@@ -255,22 +265,18 @@ public class Plugin extends Aware_Plugin {
      */
     private void disconnect(){
         Log.d(TAG,"Device disconnected");
-        if (!stepsInfo.isStepInfoEmpty()) {
-            saveStepsInfoToDB(Plugin.stepsInfo);
-            Plugin.stepsInfo = new StepsInfo(0, 0, 0);
+        if (stepsInfo != null && !stepsInfo.isStepInfoEmpty()) {
+            saveStepsInfoToDB(stepsInfo);
+            stepsInfo = null;
         }
         basicInfoHandler.removeCallbacks(basicInfoPeriodicUpdater);
         heartRateHandler.removeCallbacks(heartRatePeriodicUpdater);
-        stopStepNotification();
         stopHeartRateMeasurement(Protocol.HEART_RATE_MANUAL_MODE);
         band.disconnect();
         band = null;
-        contextProducer = () -> {
-            Intent intent = new Intent(ACTION_AWARE_BAND_DISCONNECTED);
-            sendBroadcast(intent);
-        };
-        CONTEXT_PRODUCER = contextProducer;
-        contextProducer.onContext();
+        STATE = State.DISCONNECTED;
+        if (contextProducer != null)
+            contextProducer.onContext();
     }
 
     /**
@@ -281,16 +287,9 @@ public class Plugin extends Aware_Plugin {
             @Override
             public void onSuccess(Object data) {
                 Log.d(TAG,"Successful pairing");
-                //After successful pairing enable notification os supported band services
-                contextProducer = () -> {
-                    Intent intent = new Intent(ACTION_AWARE_BAND_ENABLE_NOTIFICATION);
-                    sendBroadcast(intent);
-                    Intent nameIntent = new Intent(ACTION_AWARE_BAND_CONNECTED);
-                    nameIntent.putExtra(EXTRA_DATA,band.getDevice().getName());
-                    sendBroadcast(nameIntent);
-                };
-                CONTEXT_PRODUCER = contextProducer;
-                contextProducer.onContext();
+                STATE = State.CONNECTED;
+                if (contextProducer != null)
+                    contextProducer.onContext();
                 //Start periodic updaters
                 basicInfoHandler.post(basicInfoPeriodicUpdater);
                 //Start after delay sensors notifications
@@ -311,15 +310,11 @@ public class Plugin extends Aware_Plugin {
         band.getSignalStrength(new ActionCallback() {
             @Override
             public void onSuccess(Object data) {
-                final int rssi = (int) data;
+                rssi = (int) data;
                 Log.d(TAG,"Rssi: " + rssi);
-                contextProducer = () -> {
-                    Intent intent = new Intent(ACTION_AWARE_BAND_RSSI);
-                    intent.putExtra(EXTRA_DATA,rssi);
-                    sendBroadcast(intent);
-                };
-                CONTEXT_PRODUCER = contextProducer;
-                contextProducer.onContext();
+                STATE = State.NEW_DATA;
+                if (contextProducer != null)
+                    contextProducer.onContext();
             }
 
             @Override
@@ -333,69 +328,36 @@ public class Plugin extends Aware_Plugin {
      * Refresh Battery Info of the device
      */
     private void enableBatteryNotification(){
-        band.setBatteryInfoListener((batteryInfo) -> {
+        band.setBatteryInfoListener((bInfo) -> {
+            batteryInfo = bInfo;
             Log.d(TAG,batteryInfo.toString());
-            contextProducer = () -> {
-                Intent intent = new Intent(ACTION_AWARE_BAND_BATTERY);
-                intent.putExtra(EXTRA_DATA, batteryInfo);
-                sendBroadcast(intent);
-            };
-            CONTEXT_PRODUCER = contextProducer;
-            contextProducer.onContext();
+            STATE = State.NEW_DATA;
+            if (contextProducer != null)
+                contextProducer.onContext();
         });
-    }
-
-    private void disableBatteryNotification(){
-
     }
 
     /**
      * Enable real-time notification of the number of steps.
      */
     private void enableStepNotification(){
-        band.setRealtimeStepsNotifyListener((stepsInfo) -> {
-            Log.d(TAG,stepsInfo.toString());
-            Plugin.stepsInfo = stepsInfo;
-            contextProducer = () -> {
-                Intent intent = new Intent(ACTION_AWARE_BAND_STEPS);
-                intent.putExtra(EXTRA_DATA, stepsInfo);
-                sendBroadcast(intent);
-            };
-            CONTEXT_PRODUCER = contextProducer;
-            contextProducer.onContext();
+        band.setStepsNotifyListener((sInfo) -> {
+            stepsInfo = sInfo;
+            Log.d(TAG, stepsInfo.toString());
+            STATE = State.NEW_DATA;
+            if (contextProducer != null)
+                contextProducer.onContext();
         });
-        startStepNotification();
-    }
-
-    /**
-     * Disable step notification.
-     */
-    private void disableStepNotification(){
-        band.removeRealtimeStepsNotifyListener();
-    }
-
-    /**
-     * Start step notification.
-     */
-    private void startStepNotification(){
-        band.enableRealtimeStepsNotify();
-    }
-
-    /**
-     * Stops/Pause real-time notification of the number of steps.
-     */
-    private void stopStepNotification(){
-        band.disableRealtimeStepsNotify();
     }
 
     /**
      * Enable heart rate notification.
      */
     private void enableHeartRateNotification(){
-        //Set the heart rate scan notification
-        band.setHeartRateScanListener((heartRate) -> {
-            if (isHeartRateMeasured(heartRate)) {
-                if (isHeartRateValid(heartRate)) {
+        band.setHeartRateScanListener(hRate -> {
+            if (isHeartRateMeasured(hRate)) {
+                if (isHeartRateValid(hRate)) {
+                    heartRate = hRate;
                     Log.d(TAG, "Heart rate: " + heartRate + " bmp");
                     saveHeartRateToDB(heartRate);
                 } else {
@@ -406,22 +368,10 @@ public class Plugin extends Aware_Plugin {
                 Log.d(TAG, "Heart rate not measured");
                 heartRate = 0;
             }
-            final int value = heartRate;
-            contextProducer = () -> {
-                Intent intent = new Intent(ACTION_AWARE_BAND_HEART_RATE);
-                intent.putExtra(EXTRA_DATA, value);
-                sendBroadcast(intent);
-            };
-            CONTEXT_PRODUCER = contextProducer;
-            contextProducer.onContext();
+            STATE = State.NEW_DATA;
+            if (contextProducer != null)
+                contextProducer.onContext();
         });
-    }
-
-    /**
-     * Disable heart rate notifications.
-     */
-    private void disableHeartRateNotification(){
-        band.removeHeartRateScanListener();
     }
 
     /**
